@@ -1,2 +1,2 @@
-# testOpenZeppelinContracts
-This repo is created to test openZeppelin contracts without truffle. 
+# testSmartContracts
+This repo is created to test smart contracts without truffle. 
