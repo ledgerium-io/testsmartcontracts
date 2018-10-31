@@ -8,7 +8,7 @@ require('chai')
   .should();
 
 setTimeout(function(){
-describe('ERC20', function () {
+describe.skip('ERC20', function () {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
   
   before(function () {

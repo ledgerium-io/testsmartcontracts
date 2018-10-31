@@ -2,7 +2,7 @@ const Web3 = require('web3');
 const utils =  require('./web3util');
 
 var web3 = new Web3();
-web3.setProvider(new web3.providers.HttpProvider('http://localhost:8546'));
+web3.setProvider(new web3.providers.HttpProvider('http://localhost:8545'));
 global.web3 = web3;
 
 var privateKey = {};
@@ -39,43 +39,25 @@ var main = async function () {
 
   global.accountAddressList = accountAddressList;
   global.privateKey = privateKey;
-  //we dont need to read/write it in file as we want contract to deploy fresh everytime, test is run!
-  global.contractsList = contractsList;// = utils.readContractsFromConfig(contractsList);
+  global.contractsList = contractsList;
 
   global.owner = accountAddressList[0];
+  console.log("owner",global.owner);
   global.recipient = accountAddressList[1];
   global.anotherAccount = accountAddressList[2];
-  console.log("owner",global.owner);
-  console.log("recipient",global.recipient);
-  console.log("anotherAccount",global.anotherAccount);
+  // console.log("recipient",global.recipient);
+  // console.log("anotherAccount",global.anotherAccount);
 
-  await deployedAddressERC20Mock(global, global.contractsList);
+  //await deployedERC20MockContract(global, global.contractsList);
+  await deployedGreeterContract(global, global.contractsList);
+
+  ethAccountToUse = accountAddressList[0];
+  await accessEarlierGreeting(ethAccountToUse);
 }
 main();
 
-async function deployedAddressERC20Mock(global, contractsList){
+async function deployedERC20MockContract(global, contractsList){
 
-    // var version = web3.version.api;
-    // console.log(version); // "0.2.0"
-  
-    // var coinbase = web3.eth.coinbase;
-    // console.log(coinbase);
-
-    // var balance = web3.eth.getBalance(coinbase);
-    // console.log(balance.toString(10));
-
-    // sendTransaction.sendEther(ethAccountToUse,ethAccountToUse1,0);
-    // balance = web3.eth.getBalance(ethAccountToUse);
-    // console.log(balance.toString(10));
-
-    // balance = web3.eth.getBalance(ethAccountToUse1);
-    // console.log(balance.toString(10));
-
-    // var receipt = await utils.sendMethodTransactionOld(coinbase,ethAccountToUse,"0x00",
-    //                                "897c0cee04cadac8df147671bc0868c208c95c750d46be09f2d7b18b4efabdbb",
-    //                                web3,web3.toWei(15.0, "ether"));
-
-    // console.log("receipt - ", receipt);
     var ethAccountToUse = accountAddressList[0];
     var privateKeyToUse = privateKey[ethAccountToUse];
     var deployedERC20MockAddress = contractsList["ERC20Mock"];
@@ -87,14 +69,64 @@ async function deployedAddressERC20Mock(global, contractsList){
     if(deployedERC20MockAddress == undefined){
       
       var constructorParameters = [];
-      constructorParameters.push("0xf232a4bf183cf17d09bea23e19ceff58ad9dbfed");
-      constructorParameters.push("100");
+      constructorParameters.push(accountAddressList[0]);
+      constructorParameters.push("1000000000000000000");
       
       //value[0] = Contract ABI and value[1] =  Contract Bytecode
-      deployedERC20MockAddress = await utils.deployContractOldWeb3(ERC20MockArray[0],ERC20MockArray[1], ethAccountToUse, privateKeyToUse,constructorParameters);//"0xf232a4bf183cf17d09bea23e19ceff58ad9dbfed","1000000000000000000");
+      deployedERC20MockAddress = await utils.deployContractOldWeb3(ERC20MockArray[0],ERC20MockArray[1], ethAccountToUse, privateKeyToUse,constructorParameters);
+      console.log("ERC20Mock deployedAddress ", deployedERC20MockAddress);
       //we dont need to read/write it in file as we want contract to deploy fresh everytime, test is run!
-      //utils.writeContractsINConfig(deployedERC20MockAddress);
     }
     var mock20ERC = web3.eth.contract(JSON.parse(ERC20MockArray[0]));
     global.ERC20Mock = mock20ERC.at(deployedERC20MockAddress);
   }
+
+  async function deployedGreeterContract(global, contractsList){
+
+    var ethAccountToUse = accountAddressList[0];
+    var privateKeyToUse = privateKey[ethAccountToUse];
+    var deployedGreeterAddress = contractsList["Greeter"];
+    // Todo: Read ABI from dynamic source.
+    var filename = __dirname + "/build/contracts/Greeter.json";
+    var GreeterArray = utils.readSolidityContractJSON(filename);
+    if(GreeterArray.length <= 0)
+        return;
+    if(deployedGreeterAddress == undefined){
+      
+      var constructorParameters = [];
+      constructorParameters.push("Hi Rahul");
+      
+      //value[0] = Contract ABI and value[1] =  Contract Bytecode
+      deployedGreeterAddress = await utils.deployContractOldWeb3(GreeterArray[0],GreeterArray[1], ethAccountToUse, privateKeyToUse,constructorParameters);
+      console.log("Greeter deployedAddress ", deployedGreeterAddress);
+      //we dont need to read/write it in file as we want contract to deploy fresh everytime, test is run!
+    }
+    var GreeterContract = web3.eth.contract(JSON.parse(GreeterArray[0]));
+    global.GreeterContract = GreeterContract.at(deployedGreeterAddress);
+  }
+
+  async function accessEarlierGreeting(){
+
+    if(global.GreeterContract == undefined)
+        return;
+
+    var ethAccountToUse = accountAddressList[0];
+    var result = await GreeterContract.getMyNumber();
+    console.log("getMyNumber", result.toNumber());
+
+    var owner = await GreeterContract.getOwner();
+    console.log("getOwner", owner);
+
+    var encodedABI, number = 10;
+    
+    do{
+      encodedABI = await GreeterContract.setMyNumber.getData(number++);
+      var transactionObject = await utils.sendMethodTransactionOld(ethAccountToUse,GreeterContract.address,encodedABI,privateKey[ethAccountToUse],200000);
+      console.log("TransactionLog for Greeter setMyNumber -", transactionObject.transactionHash);
+      await utils.sleep(2000);
+    }
+    while(number <= 1000000);
+
+    var result1 = await GreeterContract.getMyNumber();
+    console.log("getMyNumber", result1.toNumber());
+}

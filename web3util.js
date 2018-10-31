@@ -54,7 +54,9 @@ const utils = {
         console.log("deployContractOldWeb3");
         try{
             var myContract = web3.eth.contract(JSON.parse(contractAbi));
-            var byteCodeWithParam = myContract.new.getData(constructorParameters[0],constructorParameters[1],{data: bytecode});
+            var byteCodeWithParam = myContract.new.getData(constructorParameters[0],constructorParameters[1],
+                constructorParameters[2],constructorParameters[3],
+                {data: bytecode});
             nonceToUse = await web3.eth.getTransactionCount(fromAccountAddress, 'pending');
             {
                 console.log("nonceToUse ",nonceToUse);
@@ -76,7 +78,6 @@ const utils = {
                     receipt = await web3.eth.getTransactionReceipt(transactionHash);
                 }
                 while(receipt == null)
-                console.log("ERC20Mock deployedAddress ", receipt.contractAddress);
                 return receipt.contractAddress;
             }
         } catch (error) {
@@ -103,7 +104,12 @@ const utils = {
                 tx.sign(privateKeyBuffer);
                 const serializedTx = tx.serialize();
 
-                receipt = await web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'));
+                transactionHash = await web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'));
+                var receipt;
+                do{
+                    receipt = await web3.eth.getTransactionReceipt(transactionHash);
+                }
+                while(receipt == null)
                 return receipt;
             }
         } catch (error) {
@@ -417,8 +423,12 @@ const utils = {
         
         await web3.currentProvider.send(message);
         return;
-    }
+    },
 
-    
+    sleep(ms){
+        return new Promise(resolve=>{
+            setTimeout(resolve,ms)
+        })
+    }
 }
 module.exports = utils;
