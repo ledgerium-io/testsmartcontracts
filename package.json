@@ -1,8 +1,8 @@
 {
-  "name": "testopenzeppelincontracts",
+  "name": "testsmartcontracts",
   "version": "1.0.0",
   "description": "",
-  "main": "truffle-config.js",
+  "main": "index.js",
   "directories": {
     "test": "test"
   },

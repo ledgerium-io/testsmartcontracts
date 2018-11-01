@@ -266,7 +266,7 @@ const utils = {
 
     readContractsFromConfig(contractsList){
         try{
-            var contractFileName = __dirname + "/keyStore/" + "contractsConfig.json";
+            var contractFileName = __dirname + "/keystore/" + "contractsconfig.json";
             var keyData = {};
             if(fs.existsSync(contractFileName)){
                 keyData = fs.readFileSync(contractFileName,"utf8");
@@ -281,7 +281,7 @@ const utils = {
     
     writeContractsINConfig(ERC20MockAddress){
         try{
-            var contractFileName = __dirname + "/keyStore/" + "contractsConfig.json";
+            var contractFileName = __dirname + "/keystore/" + "contractsconfig.json";
             contractsList["ERC20Mock"] = ERC20MockAddress;
         
             var data = JSON.stringify(contractsList,null, 2);
@@ -295,7 +295,7 @@ const utils = {
     async createAccountsAndManageKeys(){
     
         var accountAddressList = [],privateKey = {};
-        var privateKeyFileName = __dirname + "/keyStore/" + "privatekey.json";
+        var privateKeyFileName = __dirname + "/keystore/" + "privatekey.json";
         if(fs.existsSync(privateKeyFileName)){
             var keyData = fs.readFileSync(privateKeyFileName,"utf8");
             privateKey = JSON.parse(keyData);
@@ -342,7 +342,7 @@ const utils = {
             if(accountAddressList.length <= 0)
                 return;
             
-            var privateKeyFileName = __dirname + "/keyStore/" + "privatekey.json";
+            var privateKeyFileName = __dirname + "/keystore/" + "privatekey.json";
             var keyStorePath = __dirname;
             
             var keyData = {};

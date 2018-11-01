@@ -26,9 +26,9 @@ var main = async function () {
     //Transfer some ether from coinbase account to newly created accounts!
     var coinbase = web3.eth.coinbase;
     //var receipt;
-    receipt = await utils.sendMethodTransactionOld(coinbase,accountAddressList[0],"0x00",privateKey[coinbase],web3.toWei(15.0, "ether"));
-    receipt = await utils.sendMethodTransactionOld(coinbase,accountAddressList[1],"0x00",privateKey[coinbase],web3.toWei(15.0, "ether"));
-    receipt = await utils.sendMethodTransactionOld(coinbase,accountAddressList[2],"0x00",privateKey[coinbase],web3.toWei(15.0, "ether"));
+    receipt = await utils.sendMethodTransactionOld(coinbase,accountAddressList[0],"0x00",privateKey[coinbase],web3.toWei(1.0, "ether"));
+    receipt = await utils.sendMethodTransactionOld(coinbase,accountAddressList[1],"0x00",privateKey[coinbase],web3.toWei(1.0, "ether"));
+    receipt = await utils.sendMethodTransactionOld(coinbase,accountAddressList[2],"0x00",privateKey[coinbase],web3.toWei(1.0, "ether"));
   }
     
   //With assumption that accountAddressList[0],accountAddressList[1], accountAddressList[2] are present in etherum 

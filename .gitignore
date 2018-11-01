@@ -1,3 +1,4 @@
 node_modules
 *.pub
-keyStore/contractsConfig.json
+keystore/contractsconfig.json
+.node-xmlhttprequest-sync*
