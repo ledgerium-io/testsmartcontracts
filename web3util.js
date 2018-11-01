@@ -193,7 +193,7 @@ const utils = {
         return [abi, bytecode];
     },
 
-    keccak (web3,text){
+    keccakM (web3,text){
         return web3.sha3(text);
     },
 
@@ -302,10 +302,10 @@ const utils = {
             accountAddressList = Object.keys(privateKey);
         }    
         else{    
-            var prvkey1 = keccak(web3,mnemonic['account1']);
-            var prvkey2 = keccak(web3,mnemonic['account2']);
-            var prvkey3 = keccak(web3,mnemonic['account3']);
-            var prvkey4 = keccak(web3,mnemonic['account4']);
+            var prvkey1 = keccakM(web3,mnemonic['account1']);
+            var prvkey2 = keccakM(web3,mnemonic['account2']);
+            var prvkey3 = keccakM(web3,mnemonic['account3']);
+            var prvkey4 = keccakM(web3,mnemonic['account4']);
     
             pubkey1 = generatePublicKey(prvkey1);
             pubkey2 = generatePublicKey(prvkey2);
