@@ -481,7 +481,6 @@ class utils {
       
     async writeContractsINConfig(contractName,contractAddress){
         try{
-            readContractsFromConfig();
             var contractFileName = __dirname + "/keystore/" + "contractsConfig.json";
             contractsList[contractName] = contractAddress;
         

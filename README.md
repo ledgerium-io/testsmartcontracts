@@ -14,4 +14,5 @@ This project
 
 ### Run the smart contracts
 - npm install
-- node index.js
+- node index.js hostname=localhost port=8545 readkeyconfig=true usecontractconfig=false testgreeter
+- node index.js rinkeby readkeyconfig=true usecontractconfig=false deployERC20Mock
