@@ -1,16 +1,16 @@
+'use strict';
 const fs = require('fs');
 const moment = require('moment');
 const mnemonic = require('./mnemonic');
-const async =  require('async');
 const solc = require('solc');
 const EthereumTx = require('ethereumjs-tx');
 var keythereum = require('keythereum');
 const ethUtil = require('ethereumjs-util');
 
-const utils = {
+class utils {
     async getCurrentTime () {
         return moment().format('YYYY-MM-DD HH:mm:ss').trim();
-    },
+    }
       
     async transaction (from,to,value,data){
         return {
@@ -21,16 +21,16 @@ const utils = {
             gasPrice: '0x00',
             gas     : 4700000
         }
-    },
+    }
 
-    async getContractEncodeABI(abi,bytecode,arg){
+    async getContractEncodeABI(abi,bytecode,web3,arg){
         try{
             let contract = new web3.eth.Contract(JSON.parse(abi));
             return await contract.deploy({ data : bytecode, arguments : arg}).encodeABI();
         } catch (error) {
             console.log("Exception in utils.getContractEncodeABI(): " + error);
         } 
-    },
+    }
     
     async deployContract(contractAbi, bytecode, ownerAddress, constructorParameters) {
         console.log("deployContract");
@@ -48,7 +48,7 @@ const utils = {
         } catch (error) {
             console.log("Exception in utils.deployContract(): " + error);
         }    
-    },
+    }
 
     async deployContractOldWeb3(contractAbi, bytecode, fromAccountAddress, privateKey, constructorParameters) {
         console.log("deployContractOldWeb3");
@@ -83,11 +83,11 @@ const utils = {
         } catch (error) {
             console.log("Exception in utils.deployContractOldWeb3(): " + error);
         }    
-    },
+    }
     
-    async sendMethodTransactionOld (fromAccountAddress, toContractAddress, methodData, privateKey, value){
+    async sendMethodTransactionOld (fromAccountAddress, toContractAddress, methodData, privateKey, value, _web3){
         try{
-            nonceToUse = await web3.eth.getTransactionCount(fromAccountAddress, 'pending');
+            nonceToUse = await _web3.eth.getTransactionCount(fromAccountAddress, 'pending');
             {
                 console.log("nonceToUse ",nonceToUse);
                 const txParams = {
@@ -96,7 +96,7 @@ const utils = {
                     gasLimit: 4700000, //estimatedGas, //20000000, // Todo, estimate gas
                     from: fromAccountAddress,
                     to: toContractAddress,
-                    value: value,
+                    //value: value,
                     data: methodData
                 }
                 const tx = new EthereumTx(txParams)
@@ -104,10 +104,10 @@ const utils = {
                 tx.sign(privateKeyBuffer);
                 const serializedTx = tx.serialize();
 
-                transactionHash = await web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'));
+                transactionHash = await _web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'));
                 var receipt;
                 do{
-                    receipt = await web3.eth.getTransactionReceipt(transactionHash);
+                    receipt = await _web3.eth.getTransactionReceipt(transactionHash);
                 }
                 while(receipt == null)
                 return receipt;
@@ -115,48 +115,51 @@ const utils = {
         } catch (error) {
             console.log("Exception in utils.sendMethodTransactionOld(): " + error);
         } 
-    },  
+    }  
     
-    async sendMethodTransaction(fromAccountAddress, toContractAddress, methodData, privateKey, web3, estimatedGas){//, calleeMethodName,callback) {
-        try{
-            nonceToUse = await web3.eth.getTransactionCount(fromAccountAddress, 'pending');
-            {
-                console.log("nonceToUse ",nonceToUse);
-                const txParams = {
-                    nonce: nonceToUse,
-                    gasPrice: '0x00',
-                    gasLimit: 4700000, //estimatedGas, //20000000, // Todo, estimate gas
-                    from: fromAccountAddress,
-                    to: toContractAddress,
-                    value: '0x00',
-                    data: methodData
-                    //"privateFor" : privateFor
-                }
-                const tx = new EthereumTx(txParams)
-                const privateKeyBuffer = new Buffer(privateKey, 'hex');
-                tx.sign(privateKeyBuffer);
-                const serializedTx = tx.serialize();
+    async sendMethodTransaction (fromAccountAddress, toContractAddress, methodData, privateKey, web3, estimatedGas){//, calleeMethodName,callback) {
+        try
+        {
+            var gasPrice = await web3.eth.getGasPrice();
+            console.log("gasPrice ",web3.utils.toHex(gasPrice)); 
 
-                receipt = await web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'));
-                return receipt;
-                // .once('transactionHash',(receipt)=>{
-                //     console.log('transactionHash', receipt);
-                // })
-                // .once('receipt',(receipt)=>{	
-                //     console.log('info',"transaction mined successfully");
-                //     console.log(calleeMethodName, " receipt", receipt);
-                //     return receipt;
-                //     //callback("success");
-                // })				
-                // .once('error',(error)=>{
-                //     console.log('Error in ', calleeMethodName, `ERROR:\n${error.message}:${error.stack}`);
-                // });
-            //});
+            var balance = await web3.eth.getBalance(fromAccountAddress);
+            console.log("FromAccount", fromAccountAddress, "has balance of", web3.utils.fromWei(balance, 'ether'), "ether");
+            
+            let nonceToUse = await web3.eth.getTransactionCount(fromAccountAddress, 'pending');
+            console.log("nonceToUse ",nonceToUse);
+            const txParams = {
+                nonce: nonceToUse,
+                //gasPrice: '0x00',
+                gasPrice: web3.utils.toHex(gasPrice),//'0x4A817C800', //20Gwei
+                gasLimit: '0x47b760',//'0x48A1C0',//web3.utils.toWei(20,'gwei'), //estimatedGas, // Todo, estimate gas
+                from: fromAccountAddress,
+                to: toContractAddress,
+                value: web3.utils.toHex(0),
+                data: methodData
+                //"privateFor" : privateFor
             }
-        } catch (error) {
-            console.log("Exception in utils.sendMethodTransaction(): " + error);
-        }    
-    },
+            const tx = new EthereumTx(txParams);
+            const privateKeyBuffer = new Buffer(privateKey, 'hex');
+            tx.sign(privateKeyBuffer);
+            const serializedTx = tx.serialize();
+
+            let transactionHash = await web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'));
+            // var receipt;
+            // do{
+            //     receipt = await web3.eth.getTransactionReceipt(transactionHash);
+            // }
+            // while(receipt == null)
+            if(transactionHash.status)
+                return transactionHash;
+            else
+                return "";
+        }
+        catch (error) {
+            console.log("Error in utils.sendMethodTransaction(): " + error);
+            return "";
+        }
+    }
     
     /** To get estimate of gas consumptio for the given transaction prior to actual
      * execution on blockchain! Extremely useful feature however, giving issues on quorum
@@ -168,7 +171,7 @@ const utils = {
                 to      : toContractAddress,
                 data    : methodData
             });
-    },
+    }
 
     /** to get receipt of the event raised from the blockchain
     */ 
@@ -177,13 +180,13 @@ const utils = {
         if(!receipt)
             console.log("Transaction",transactionHash,"did not get mined!");
         return receipt;
-    },
+    }
     
     readSolidityContractJSON (filename) {
         var json = JSON.parse(fs.readFileSync(filename, 'utf8'));
         let abi = JSON.stringify(json.abi);
         return [abi, json.bytecode];
-    },
+    }
 
     compileSolidityContract (filename,contractName) {
         let source = fs.readFileSync(filename, 'utf8');
@@ -191,25 +194,25 @@ const utils = {
         let abi = compiledContract.contracts[":"+contractName].interface;
         let bytecode = compiledContract.contracts[":"+contractName].bytecode;
         return [abi, bytecode];
-    },
+    }
 
     keccakM (web3,text){
         return web3.sha3(text);
-    },
+    }
 
     async sendTransaction(web3,transaction){
         return await web3.eth.sendTransaction(transaction);
-    },
+    }
 
     generatePublicKey (privateKey) {
         return '0x'+ethUtil.privateToAddress(privateKey).toString('hex');
-    },
+    }
 
     getPrivateKeyFromKeyStore (accountAddress, keyStorePath, password) {
         var keyObject = keythereum.importFromFile(accountAddress, keyStorePath);
         var privateKey = keythereum.recover(password, keyObject);
         return privateKey.toString('hex');
-    },
+    }
 
     async subscribe (string,web3,callback) {
         web3.eth.subscribe(string,(error,transaction)=>{
@@ -219,7 +222,7 @@ const utils = {
                 callback(transaction);
             }
         });
-    },
+    }
     
     // to get all events from a submitted transaction to send to node application
     async listen(contract,callback){
@@ -234,7 +237,7 @@ const utils = {
                 callback(event);
             }
         });
-    },
+    }
 
     async getData(fromAccount,toContract,endata,web3){
         return await web3.eth.call({
@@ -242,7 +245,7 @@ const utils = {
             to: toContract,
             data: endata
         });
-    },
+    }
 
     split(array){
         temp = [];
@@ -255,46 +258,59 @@ const utils = {
             add.push("0x"+temp[j].slice(24,64));
         }
         return add.splice(2, add.length);
-    },
+    }
 
     convertToBool(inputString){
         if(inputString == "0x0000000000000000000000000000000000000000000000000000000000000001")
             return true;
         else (inputString == "0x0000000000000000000000000000000000000000000000000000000000000000")
             return false;
-    },
+    }
 
-    readContractsFromConfig(contractsList){
-        try{
-            var contractFileName = __dirname + "/keystore/" + "contractsconfig.json";
-            var keyData = {};
-            if(fs.existsSync(contractFileName)){
-                keyData = fs.readFileSync(contractFileName,"utf8");
-                contractsList = JSON.parse(keyData);
-            }
-            return contractsList;
-        }
-        catch (error) {
-            console.log("Error in utils.readContractsFromConfig: " + error);
-        }
-    },   
-    
-    writeContractsINConfig(ERC20MockAddress){
-        try{
-            var contractFileName = __dirname + "/keystore/" + "contractsconfig.json";
-            contractsList["ERC20Mock"] = ERC20MockAddress;
+    async personalImportAccount(privateKey,password){
+        var message = {
+            method: "personal_importRawKey",
+            params: [privateKey,password],
+            jsonrpc: "2.0",
+            id: new Date().getTime()
+            };
         
-            var data = JSON.stringify(contractsList,null, 2);
-            fs.writeFileSync(contractFileName,data);
-        }
-        catch (error) {
-            console.log("Error in utils.writeContractsINConfig: " + error);
-        }
-    },
+        await web3.currentProvider.send(message);
+        return;
+    }
+
+    async unlockPersonalAccount(account, password){
+        var message = {
+            method: "personal_unlockAccount",
+            params: [account,password],
+            jsonrpc: "2.0",
+            id: new Date().getTime()
+            };
+        
+        await web3.currentProvider.send(message);
+        return;
+    }
+
+    async lockPersonalAccount(account){
+        var message = {
+            method: "personal_lockAccount",
+            params: [account],
+            jsonrpc: "2.0",
+            id: new Date().getTime()
+            };
+        
+        await web3.currentProvider.send(message);
+        return;
+    }
+
+    sleep(ms){
+        return new Promise(resolve=>{
+            setTimeout(resolve,ms)
+        })
+    }
 
     async createAccountsAndManageKeys(){
-    
-        var accountAddressList = [],privateKey = {};
+
         var privateKeyFileName = __dirname + "/keystore/" + "privatekey.json";
         if(fs.existsSync(privateKeyFileName)){
             var keyData = fs.readFileSync(privateKeyFileName,"utf8");
@@ -306,7 +322,7 @@ const utils = {
             var prvkey2 = keccakM(web3,mnemonic['account2']);
             var prvkey3 = keccakM(web3,mnemonic['account3']);
             var prvkey4 = keccakM(web3,mnemonic['account4']);
-    
+      
             pubkey1 = generatePublicKey(prvkey1);
             pubkey2 = generatePublicKey(prvkey2);
             pubkey3 = generatePublicKey(prvkey3);
@@ -317,12 +333,12 @@ const utils = {
             accountAddressList.push(pubkey2);
             accountAddressList.push(pubkey3);
             accountAddressList.push(pubkey4);
-    
+      
             privateKey[pubkey1] = prvkey1.slice(2,66);
             privateKey[pubkey2] = prvkey2.slice(2,66);
             privateKey[pubkey3] = prvkey3.slice(2,66);
             privateKey[pubkey4] = prvkey4.slice(2,66);
-    
+      
             var data = JSON.stringify(privateKey,null, 2);
             fs.writeFileSync(privateKeyFileName,data);
         }
@@ -331,9 +347,39 @@ const utils = {
         if(noOfAccounts > 0 && noOfPrivateKeys > 0 && (noOfAccounts == noOfPrivateKeys)){
             console.log("There are", accountAddressList.length, "accounts in the config file");
         }
-        return [accountAddressList,privateKey];
-    },
+        global.accountAddressList = accountAddressList;
+        global.privateKey = privateKey;
+        //return [accountAddressList,privateKey];
+        return;
+    }
+      
+    async createAccountsAndManageKeysFromPrivateKeys(inputPrivateKeys){
     
+        accountAddressList.length = 0;
+        let pubkey;
+        for(var index = 0; index < inputPrivateKeys.length; index++){
+            let eachElement = inputPrivateKeys[index];
+            try{
+                let prvKey = ethUtil.toBuffer("0x" + eachElement);
+                pubkey = '0x' + ethUtil.privateToAddress(prvKey).toString('hex');
+            }
+            catch (error) {
+                console.log("Error in utils.createAccountsAndManageKeysFromPrivateKeys(): " + error);
+                return "";
+            }    
+            accountAddressList.push(pubkey);
+            privateKey[pubkey] = eachElement;
+        }
+        var noOfPrivateKeys = Object.keys(privateKey).length;
+        var noOfAccounts = accountAddressList.length;
+        if(noOfAccounts > 0 && noOfPrivateKeys > 0 && (noOfAccounts == noOfPrivateKeys)){
+            console.log(accountAddressList.length + " ethereum accounts are created using private keys!");
+        }
+        global.accountAddressList = accountAddressList;
+        global.privateKey = privateKey;
+        return;
+    }
+      
     async readWritePrivateKeys(){
         try{
             const password = "password";
@@ -375,60 +421,90 @@ const utils = {
             }    
             data = JSON.stringify(privateKey,null, 2);
             fs.writeFileSync(privateKeyFileName,data);
-    
+        
             console.log("No of private keys", Object.keys(privateKey).length);
             
             // var newAccount = await web3.eth.personal.newAccount(password);
             // console.log("accountAddressList ", newAccount);
-    
+        
             //var account = web3.eth.accounts.privateKeyToAccount(privateKey[accountAddressList[0]]);
             //console.log("accountaddress ", accountAddressList[0], "recovered account with private key is", privateKey[accountAddressList[0]], account.address);
         }
         catch (error) {
             console.log("Error in utils.readWritePrivateKeys: " + error);
         }
-    },
-
-    async personalImportAccount(privateKey,password){
-        var message = {
-            method: "personal_importRawKey",
-            params: [privateKey,password],
-            jsonrpc: "2.0",
-            id: new Date().getTime()
-            };
-        
-        await web3.currentProvider.send(message);
-        return;
-    },
-
-    async unlockPersonalAccount(account, password){
-        var message = {
-            method: "personal_unlockAccount",
-            params: [account,password],
-            jsonrpc: "2.0",
-            id: new Date().getTime()
-            };
-        
-        await web3.currentProvider.send(message);
-        return;
-    },
-
-    async lockPersonalAccount(account){
-        var message = {
-            method: "personal_lockAccount",
-            params: [account],
-            jsonrpc: "2.0",
-            id: new Date().getTime()
-            };
-        
-        await web3.currentProvider.send(message);
-        return;
-    },
-
-    sleep(ms){
-        return new Promise(resolve=>{
-            setTimeout(resolve,ms)
-        })
+    }  
+    
+    async readAccountsAndKeys(){
+        var privateKeyFileName = __dirname + "/keystore/" + "privatekey.json";
+        if(fs.existsSync(privateKeyFileName)){
+            var keyData = fs.readFileSync(privateKeyFileName,"utf8");
+            var privateKey = JSON.parse(keyData);
+            var accountAddressList = Object.keys(privateKey);
+            console.log("There are", accountAddressList.length, "ethereum accounts & private keys in the privatekey file");
+            global.accountAddressList = accountAddressList;
+            global.privateKey = privateKey;
+            return true;
+        }
+        else{
+            console.log("privatekey.json file does not exist! The program may not function properly!");
+            return false;
+        }    
     }
+      
+    async writeAccountsAndKeys(){
+        var privateKeyFileName = __dirname + "/keystore/" + "privatekey.json";
+        var data = JSON.stringify(privateKey,null, 2);
+        fs.writeFileSync(privateKeyFileName,data);
+        console.log(accountAddressList.length + " ethereum accounts & private keys are written to the privateKey.json file");
+        return false;
+    }
+      
+    async readContractFromConfigContracts(contractName){
+        try{
+            var contractFileName = __dirname + "/keystore/" + "contractsConfig.json";
+            var keyData = {};
+            if(fs.existsSync(contractFileName)){
+                keyData = fs.readFileSync(contractFileName,"utf8");
+                contractsList = JSON.parse(keyData);
+                if(contractsList[contractName] != undefined)
+                    return contractsList[contractName];
+                else 
+                    return "";
+            }
+        }
+        catch (error) {
+            console.log("Error in readContractFromConfigContracts: " + error);
+            return "";
+        }
+    }    
+      
+    async writeContractsINConfig(contractName,contractAddress){
+        try{
+            readContractsFromConfig();
+            var contractFileName = __dirname + "/keystore/" + "contractsConfig.json";
+            contractsList[contractName] = contractAddress;
+        
+            var data = JSON.stringify(contractsList,null, 2);
+            fs.writeFileSync(contractFileName,data);
+        }
+        catch (error) {
+            console.log("Error in writeContractsINConfig: " + error);
+        }
+    }
+
+    readContractsFromConfig(){
+        try{
+              var contractFileName = __dirname + "/keystore/" + "contractsconfig.json";
+              var keyData = {};
+              if(fs.existsSync(contractFileName)){
+                  keyData = fs.readFileSync(contractFileName,"utf8");
+                  contractsList = JSON.parse(keyData);
+              }
+        }
+        catch (error) {
+            console.log("Error in utils.readContractsFromConfig: " + error);
+        }
+    }   
 }
 module.exports = utils;

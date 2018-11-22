@@ -180,9 +180,9 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity ^0.4.24;\n\n/**\n * @title ERC20 interface\n * @dev see https://github.com/ethereum/EIPs/issues/20\n */\ninterface IERC20 {\n  function totalSupply() external view returns (uint256);\n\n  function balanceOf(address who) external view returns (uint256);\n\n  function allowance(address owner, address spender)\n    external view returns (uint256);\n\n  function transfer(address to, uint256 value) external returns (bool);\n\n  function approve(address spender, uint256 value)\n    external returns (bool);\n\n  function transferFrom(address from, address to, uint256 value)\n    external returns (bool);\n\n  event Transfer(\n    address indexed from,\n    address indexed to,\n    uint256 value\n  );\n\n  event Approval(\n    address indexed owner,\n    address indexed spender,\n    uint256 value\n  );\n}\n",
-  "sourcePath": "/Users/rahulgolash/Rahul/Ledgerium/CoreLedgerium/testOpenZeppelinContracts/contracts/IERC20.sol",
+  "sourcePath": "/Users/rahulgolash/Rahul/Ledgerium/CoreLedgerium/testsmartcontracts/contracts/IERC20.sol",
   "ast": {
-    "absolutePath": "/Users/rahulgolash/Rahul/Ledgerium/CoreLedgerium/testOpenZeppelinContracts/contracts/IERC20.sol",
+    "absolutePath": "/Users/rahulgolash/Rahul/Ledgerium/CoreLedgerium/testsmartcontracts/contracts/IERC20.sol",
     "exportedSymbols": {
       "IERC20": [
         652
@@ -1016,7 +1016,7 @@
     "src": "0:792:3"
   },
   "legacyAST": {
-    "absolutePath": "/Users/rahulgolash/Rahul/Ledgerium/CoreLedgerium/testOpenZeppelinContracts/contracts/IERC20.sol",
+    "absolutePath": "/Users/rahulgolash/Rahul/Ledgerium/CoreLedgerium/testsmartcontracts/contracts/IERC20.sol",
     "exportedSymbols": {
       "IERC20": [
         652
@@ -1854,6 +1854,6 @@
     "version": "0.4.24+commit.e67f0147.Emscripten.clang"
   },
   "networks": {},
-  "schemaVersion": "2.0.0",
-  "updatedAt": "2018-10-31T06:05:06.971Z"
+  "schemaVersion": "2.0.1",
+  "updatedAt": "2018-11-22T13:12:47.702Z"
 }
