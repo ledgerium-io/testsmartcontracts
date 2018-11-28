@@ -467,8 +467,8 @@ class utils {
             if(fs.existsSync(contractFileName)){
                 keyData = fs.readFileSync(contractFileName,"utf8");
                 contractsList = JSON.parse(keyData);
-                if(contractsList[contractName] != undefined)
-                    return contractsList[contractName];
+                if(contractsList[contractName] != undefined){
+                    return contractsList[contractName];}
                 else 
                     return "";
             }
@@ -494,7 +494,7 @@ class utils {
 
     readContractsFromConfig(){
         try{
-              var contractFileName = __dirname + "/keystore/" + "contractsconfig.json";
+              var contractFileName = __dirname + "/keystore/" + "contractsConfig.json";
               var keyData = {};
               if(fs.existsSync(contractFileName)){
                   keyData = fs.readFileSync(contractFileName,"utf8");
