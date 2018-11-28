@@ -462,7 +462,7 @@ class utils {
       
     async readContractFromConfigContracts(contractName){
         try{
-            var contractFileName = __dirname + "/keystore/" + "contractsConfig.json";
+            var contractFileName = __dirname + "/keystore/" + "contractsconfig.json";
             var keyData = {};
             if(fs.existsSync(contractFileName)){
                 keyData = fs.readFileSync(contractFileName,"utf8");
@@ -481,7 +481,7 @@ class utils {
       
     async writeContractsINConfig(contractName,contractAddress){
         try{
-            var contractFileName = __dirname + "/keystore/" + "contractsConfig.json";
+            var contractFileName = __dirname + "/keystore/" + "contractsconfig.json";
             contractsList[contractName] = contractAddress;
         
             var data = JSON.stringify(contractsList,null, 2);
