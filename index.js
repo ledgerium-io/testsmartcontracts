@@ -7,6 +7,8 @@ const Utils =  require('./web3util');
 var provider;
 var host,port;
 var web3;
+web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
+global.web3 = web3;
 
 const utils = new Utils();
 global.utils = utils;
@@ -86,6 +88,9 @@ var main = async function () {
           case "testPersonalImportAccount":
               await testPersonalImportAccount();
               break;
+          case "testERC20" :
+              await testERC20Contract();
+              break;
           default:
               //throw "command should be of form :\n node deploy.js host=<host> file=<file> contracts=<c1>,<c2> dir=<dir>";
               break;
@@ -97,7 +102,7 @@ var main = async function () {
   return;
 }
 
-main();
+// main();
 
 async function deployERC20MockContract(){
 
@@ -107,7 +112,7 @@ async function deployERC20MockContract(){
     var ethAccountToUse = accountAddressList[0];
     
     // Todo: Read ABI from dynamic source.
-    var filename = __dirname + "/build/contracts/ERC20Mock.json";
+    var filename = __dirname + "/build/contracts/ERC20.json";
     var value = utils.readSolidityContractJSON(filename);
     if(value.length <= 0)
         return;
@@ -127,7 +132,8 @@ async function deployERC20MockContract(){
         utils.writeContractsINConfig("ERC20Mock",deployedERC20MockAddress);
     }
     else{
-        deployedERC20MockAddress = utils.readContractFromConfigContracts("ERC20Mock");
+        deployedERC20MockAddress = await utils.readContractFromConfigContracts("ERC20Mock");
+        console.log("ERC20Mock deployedAddress_old ", deployedERC20MockAddress);
     }    
     
     var mock20ERC = new web3.eth.Contract(JSON.parse(value[0],deployedERC20MockAddress));
@@ -145,31 +151,32 @@ async function testGreetingContract(){
           return;
       }
       var ethAccountToUse = accountAddressList[0];
-      var deployedAddressGreeter;
+      var deployedAddressERC20;
       if(!usecontractconfigFlag){
           let constructorParameters = [];
           constructorParameters.push("Hi Ledgerium");
           //value[0] = Contract ABI and value[1] =  Contract Bytecode
-          //var deployedAddressGreeter = "0x0000000000000000000000000000000000002020";
+          //var deployedAddressERC20 = "0x0000000000000000000000000000000000002020";
           let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
           let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
-          deployedAddressGreeter = transactionHash.contractAddress;
-          console.log("Greeter deployedAddress ", deployedAddressGreeter);
+          deployedAddressERC20 = transactionHash.contractAddress;
+          console.log("Greeter deployedAddress ", deployedAddressERC20);
 
-          utils.writeContractsINConfig("Greeter",deployedAddressGreeter);
+          utils.writeContractsINConfig("Greeter",deployedAddressERC20);
       }
       else{
-          deployedAddressGreeter = utils.readContractFromConfigContracts("Greeter");
+          deployedAddressERC20 = await utils.readContractFromConfigContracts("Greeter");
+          console.log("Greeter deployedAddress_old ", deployedAddressERC20);
       }
       
-      var greeting = new web3.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
+      var greeting = new web3.eth.Contract(JSON.parse(value[0]),deployedAddressERC20);
       global.greeting = greeting;
       
       var result = await greeting.methods.getMyNumber().call({from : ethAccountToUse});
       console.log("getMyNumber", result);
       
       let encodedABI = greeting.methods.setMyNumber(499).encodeABI();
-      var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedAddressGreeter,encodedABI,privateKey[ethAccountToUse],web3,0);
+      var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedAddressERC20,encodedABI,privateKey[ethAccountToUse],web3,0);
       console.log("TransactionLog for Greeter Setvalue -", transactionObject.transactionHash);
 
       result = await greeting.methods.getMyNumber().call({from : ethAccountToUse});
@@ -204,4 +211,47 @@ async function testPersonalImportAccount() {
     await utils.unlockPersonalAccount(accountAddressList[1],password);
     await utils.unlockPersonalAccount(accountAddressList[2],password);
 }
-  
+
+async function testERC20Contract() {
+    accountAddressList = global.accountAddressList;
+    privateKey = global.privateKey;  
+
+    // Todo: Read ABI from dynamic source.
+    var value = utils.readSolidityContractJSON("./build/contracts/ERC20.json");
+    if(value.length <= 0){
+        return;
+    }
+    var ethAccountToUse = accountAddressList[0];
+    var deployedAddressERC20;
+    if(!usecontractconfigFlag){
+        let constructorParameters = [];
+        constructorParameters.push(accountAddressList[0]);
+        constructorParameters.push("1000000000000000000");
+        //value[0] = Contract ABI and value[1] =  Contract Bytecode
+        //var deployedAddressERC20 = "0x0000000000000000000000000000000000002020";
+        let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
+        let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
+        deployedAddressERC20 = transactionHash.contractAddress;
+        console.log("ERC20 deployedAddress ", deployedAddressERC20);
+
+        utils.writeContractsINConfig("ERC20",deployedAddressERC20);
+    }
+    else{
+        deployedAddressERC20 = await utils.readContractFromConfigContracts("ERC20");
+        console.log("ERC20 deployedAddress_old ", deployedAddressERC20);
+    }
+    
+    var erc20 = new web3.eth.Contract(JSON.parse(value[0]),deployedAddressERC20);
+    global.erc20 = erc20;
+
+    var result = await erc20.methods.balanceOf(ethAccountToUse).call({from : ethAccountToUse});
+    console.log('Balance of ' + ethAccountToUse + ' : ' + result);
+}
+
+async function test() {
+    await utils.readAccountsAndKeys();
+    await utils.readContractsFromConfig();
+    await testERC20Contract();
+}
+
+test();
