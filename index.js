@@ -83,6 +83,9 @@ var main = async function () {
           case "deployERC20Mock":
               await deployERC20MockContract();
               break;
+          case "deployERC20":
+              await deployERC20Contract();
+              break;
           case "testPersonalImportAccount":
               await testPersonalImportAccount();
               break;
@@ -116,7 +119,7 @@ async function deployERC20MockContract(){
     if(!usecontractconfigFlag){
         let constructorParameters = [];
         constructorParameters.push(accountAddressList[0]);
-        constructorParameters.push("1000000000000000000");
+        constructorParameters.push("2500");
         //value[0] = Contract ABI and value[1] =  Contract Bytecode
         //var deployedERC20MockAddress = "0x0000000000000000000000000000000000002020";
         let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
@@ -130,8 +133,27 @@ async function deployERC20MockContract(){
         deployedERC20MockAddress = utils.readContractFromConfigContracts("ERC20Mock");
     }    
     
-    var mock20ERC = new web3.eth.Contract(JSON.parse(value[0],deployedERC20MockAddress));
+    var mock20ERC = new web3.eth.Contract(JSON.parse(value[0]),deployedERC20MockAddress);
     global.ERC20Mock = mock20ERC;
+
+    var result = await mock20ERC.methods.totalSupply().call();
+    console.log("totalSupply", result);
+
+    var result = await mock20ERC.methods.balanceOf(ethAccountToUse).call();
+    console.log("balanceOf", result, "of account", ethAccountToUse);
+
+    var result = await mock20ERC.methods.balanceOf(accountAddressList[1]).call();
+    console.log("balanceOf", result, "of account",  accountAddressList[1]);
+    
+    let encodedABI = mock20ERC.methods.transfer(accountAddressList[1],123).encodeABI();
+    var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedERC20MockAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
+    console.log("TransactionLog for ERC20Mock transfer -", transactionObject.transactionHash);
+
+    result = await mock20ERC.methods.balanceOf(accountAddressList[1]).call();
+    console.log("balanceOf", result, "of account",  accountAddressList[1]);
+
+    result = await mock20ERC.methods.balanceOf(accountAddressList[0]).call();
+    console.log("balanceOf", result, "of account",  accountAddressList[0]);
 }
 
 async function testGreetingContract(){
@@ -175,6 +197,60 @@ async function testGreetingContract(){
       result = await greeting.methods.getMyNumber().call({from : ethAccountToUse});
       console.log("getMyNumber after", result);
 }
+
+// async function deployERC20Contract(){
+
+//     accountAddressList = global.accountAddressList;
+//     privateKey = global.privateKey;
+
+//     var ethAccountToUse = accountAddressList[0];
+    
+//     // Todo: Read ABI from dynamic source.
+//     var filename = __dirname + "/build/contracts/ERC20.json";
+//     var value = utils.readSolidityContractJSON(filename);
+//     if(value.length <= 0)
+//         return;
+    
+//     var deployedERC20Address;
+//     if(!usecontractconfigFlag){
+//         let constructorParameters = [];
+//         constructorParameters.push(accountAddressList[0]);
+//         constructorParameters.push("2500");
+//         //value[0] = Contract ABI and value[1] =  Contract Bytecode
+//         //var deployedERC20Address = "0x0000000000000000000000000000000000002020";
+//         let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
+//         let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
+//         deployedERC20Address = transactionHash.contractAddress;
+//         console.log("ERC20 deployedAddress ", deployedERC20Address);
+
+//         utils.writeContractsINConfig("ERC20",deployedERC20Address);
+//     }
+//     else{
+//         deployedERC20Address = utils.readContractFromConfigContracts("ERC20");
+//     }    
+    
+//     var mock20ERC = new web3.eth.Contract(JSON.parse(value[0]),deployedERC20Address);
+//     global.ERC20 = mock20ERC;
+
+//     var result = await mock20ERC.methods.totalSupply().call();
+//     console.log("totalSupply", result);
+
+//     var result = await mock20ERC.methods.balanceOf(ethAccountToUse).call();
+//     console.log("balanceOf", result, "of account", ethAccountToUse);
+
+//     var result = await mock20ERC.methods.balanceOf(accountAddressList[1]).call();
+//     console.log("balanceOf", result, "of account",  accountAddressList[1]);
+    
+//     let encodedABI = mock20ERC.methods.transfer(accountAddressList[1],123).encodeABI();
+//     var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedERC20Address,encodedABI,privateKey[ethAccountToUse],web3,0);
+//     console.log("TransactionLog for ERC20 transfer -", transactionObject.transactionHash);
+
+//     result = await mock20ERC.methods.balanceOf(accountAddressList[1]).call();
+//     console.log("balanceOf", result, "of account",  accountAddressList[1]);
+
+//     result = await mock20ERC.methods.balanceOf(accountAddressList[0]).call();
+//     console.log("balanceOf", result, "of account",  accountAddressList[0]);
+// }
 
 async function testPersonalImportAccount() {
 
