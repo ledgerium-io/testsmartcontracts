@@ -10,7 +10,7 @@
             "request": "launch",
             "name": "Launch Program",
             "program": "${workspaceFolder}/index.js",
-            "args":["hostname=localhost", "port=8545", "readkeyconfig=true", "usecontractconfig=false", "deployERC20"]
+            "args":["hostname=localhost", "port=8545", "readkeyconfig=true", "usecontractconfig=false", "deployERC20Mock"]
         }
     ]
 }
