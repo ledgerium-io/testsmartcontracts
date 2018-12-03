@@ -1,94 +1,158 @@
 const { assertRevert } = require('../helpers/assertRevert');
 const expectEvent = require('../helpers/expectEvent');
-const utils = require('../web3util');
+// const utils = require('../web3util.js');
 const BigNumber = web3.utils.BN;
 
 require('chai')
-  .use(require('chai-bignumber')(BigNumber))
+  .use(require('chai-bignumber')())
   .should();
 
 setTimeout(function () {
   describe('ERC20', function () {
     const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
     const owner = accountAddressList[0];
+    const recipient = accountAddressList[1];
     const anotherAccount = accountAddressList[2];
 
     before(async function () {
-      this.token = ERC20Mock.methods;
+      this.token = ERC20Mock;
     });
 
     describe('total supply', function () {
+
       it('returns the total amount of tokens', async function () {
-        (await this.token.totalSupply()).should.be.bignumber.equal(100);
+        var result = await this.token.methods.totalSupply().call();
+        result.should.be.bignumber.equal(100);
       });
     });
 
     describe('balanceOf', function () {
       describe('when the requested account has no tokens', function () {
         it('returns zero', async function () {
-          (await this.token.balanceOf(anotherAccount)).should.be.bignumber.equal(0);
+          (await this.token.methods.balanceOf(anotherAccount).call()).should.be.bignumber.equal(0);
         });
       });
 
       describe('when the requested account has some tokens', function () {
         it('returns the total amount of tokens', async function () {
-          var ownerBalance = await this.token.balanceOf(owner).toNumber();
+          var ownerBalance = await this.token.methods.balanceOf(owner).call();
           ownerBalance.should.be.bignumber.equal(100);
         });
       });
     });
 
-    // describe('transfer', function () {
-    //   describe('when the recipient is not the zero address', function () {
-    //     const to = recipient;
+    describe('transfer', function () {
+      describe('when the recipient is not the zero address', function () {
+        const to = recipient;
 
-    //     describe('when the sender does not have enough balance', function () {
-    //       const amount = 101;
+        describe('when the sender does not have enough balance', function () {
+          const amount = 101;
 
-    //       it('reverts', async function () {
-    //         var ret = await this.token.transfer(to, amount, { from: owner });
-    //         assertRevert(ret);
-    //       });
-    //     });
+          it('reverts', async function () {
+            // var ret = await this.token.methods.transfer(to, amount, { from: owner });
+            let encodedABI = await this.token.methods.transfer(to, amount).encodeABI();
+            var trasnactionObject = utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
+            // assertRevert(trasnactionObject);
+          });
+        });
 
-    //     describe('when the sender has enough balance', function () {
-    //       const amount = 100;
+        describe('when the sender has enough balance', function () {
+          const amount = 100;
 
-    //       it('transfers the requested amount', async function () {
-    //         var ownerBalance = await this.token.balanceOf(owner).toNumber()();
-    //         await this.token.transfer(to, amount, { from: owner });
-    //         (await this.token.balanceOf(owner)).should.be.bignumber.equal(0);
-    //         (await this.token.balanceOf(to)).should.be.bignumber.equal(amount);
-    //       });
+          it('transfers the requested amount', async function () {
+            var ownerBalance = await this.token.methods.balanceOf(owner).call();
+            let encodedABI = await this.token.methods.transfer(to, amount).encodeABI();
+            var transactionObject  = await utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
+            console.log('Transaction Object ', JSON.stringify(transactionObject))
+            var balance = await this.token.methods.balanceOf(owner).call(); 
+            (await this.token.methods.balanceOf(owner).call()).should.be.bignumber.equal(0);
+            
+            var balance = await this.token.methods.balanceOf(to).call();
+            (await this.token.methods.balanceOf(to).call()).should.be.bignumber.equal(amount);
+          });
 
-    //       it('emits a transfer event', async function () {
-    //         const { logs } = await this.token.transfer(to, amount, { from: owner });
+          // it('emits a transfer event', async function () {
+  
+          //   console.log('Balance of owner ' + await this.token.methods.balanceOf(owner).call());
 
-    //         expectEvent.inLogs(logs, 'Transfer', {
-    //           from: owner,
-    //           to: to,
+          //   // const { logs } = await this.token.methods.transfer(to, amount, { from: owner });
+          //   let encodedABI = await this.token.methods.transfer(to, amount).encodeABI();
+          //   var transactionObject = await utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
+
+          //   var logs = await ERC20Mock.getPastEvents('Transfer');
+            
+          //   expectEvent.inLogs(logs, 'Transfer', {
+          //     from: owner,
+          //     to: to,
+          //     value: amount,
+          //   });
+          // });
+        });
+      });
+
+      describe('when the recipient is the zero address', function () {
+        const to = ZERO_ADDRESS;
+        const amount = 100;
+
+        it('reverts', async function () {
+            let encodedABI = await this.token.methods.transfer(to, amount).encodeABI();
+            var trasnactionObject = utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
+            assertRevert(trasnactionObject); // AssertionError: Expected revert not received
+        });
+      });
+    });
+
+    describe('approve', function () {
+      describe('when the spender is not the zero address', function () {
+        const spender = recipient;
+
+        describe('when the sender has enough balance', function () {
+          const amount = 100;
+
+          it('emits an approval event', async function () {
+    //         const { logs } = await this.token.approve(spender, amount, { from: owner });
+               var encodedABI = await this.token.methods.approve(spender, amount).encodeABI();
+               var transactionObject = await utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
+
+               //Need to work
+    //         expectEvent.inLogs(logs, 'Approval', {
+    //           owner: owner,
+    //           spender: spender,
     //           value: amount,
     //         });
-    //       });
-    //     });
-    //   });
+          });
 
-    //   describe('when the recipient is the zero address', function () {
-    //     const to = ZERO_ADDRESS;
+          describe('when there was no approved amount before', function () {
+            it('approves the requested amount', async function () {
+              
+              var encodedABI = (await this.token.methods.approve(spender, amount)).encodeABI();
+              var transactionObject  = await utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
 
-    //     it('reverts', async function () {
-    //       var val = await this.token.transfer(to, 100, { from: owner });
-    //       await assertRevert(val);
-    //     });
-    //   });
-    // });
+              var balance = await this.token.methods.allowance(owner, spender).call();
+              (balance).should.be.bignumber.equal(amount);
+            });
+          });
 
-    // describe('approve', function () {
-    //   describe('when the spender is not the zero address', function () {
-    //     const spender = recipient;
+          describe('when the spender had an approved amount', function () {
+            beforeEach(async function () {
+              var encodedABI = (await this.token.methods.approve(spender, 1)).encodeABI();
+              var transactionObject  = await utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
+            
+              var balance = await this.token.methods.allowance(owner, spender).call();
+            });
 
-    //     describe('when the sender has enough balance', function () {
-    //       const amount = 100;
+            it('approves the requested amount and replaces the previous one', async function () {
+              var encodedABI = (await this.token.methods.approve(spender, amount)).encodeABI();
+              var transactionObject  = await utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
+
+              var balance = await this.token.methods.allowance(owner, spender).call();
+              (balance).should.be.bignumber.equal(amount);
+            });
+          });
+        });
+
+        describe('when the sender does not have enough balance', function () {
+          const amount = 101;
 
     //       it('emits an approval event', async function () {
     //         const { logs } = await this.token.approve(spender, amount, { from: owner });
@@ -100,71 +164,51 @@ setTimeout(function () {
     //         });
     //       });
 
-    //       describe('when there was no approved amount before', function () {
-    //         it('approves the requested amount', async function () {
-    //           await this.token.approve(spender, amount, { from: owner });
+          describe('when there was no approved amount before', function () {
+            it('approves the requested amount', async function () {
+              // await this.token.approve(spender, amount, { from: owner });
 
-    //           (await this.token.allowance(owner, spender)).should.be.bignumber.equal(amount);
-    //         });
-    //       });
+              // (await this.token.allowance(owner, spender)).should.be.bignumber.equal(amount);
+              var encodedABI = (await this.token.methods.approve(spender, amount)).encodeABI();
+              var transactionObject  = await utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
 
-    //       describe('when the spender had an approved amount', function () {
-    //         beforeEach(async function () {
-    //           await this.token.approve(spender, 1, { from: owner });
-    //         });
+              var balance = await this.token.methods.allowance(owner, spender).call();
+              (balance).should.be.bignumber.equal(amount);
+            });
+          });
 
-    //         it('approves the requested amount and replaces the previous one', async function () {
-    //           await this.token.approve(spender, amount, { from: owner });
+          describe('when the spender had an approved amount', function () {
+            beforeEach(async function () {
+              // await this.token.approve(spender, 1, { from: owner });
+              var encodedABI = (await this.token.methods.approve(spender, 1)).encodeABI();
+              var transactionObject  = await utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
 
-    //           (await this.token.allowance(owner, spender)).should.be.bignumber.equal(amount);
-    //         });
-    //       });
-    //     });
+            });
 
-    //     describe('when the sender does not have enough balance', function () {
-    //       const amount = 101;
+            it('approves the requested amount and replaces the previous one', async function () {
+              // await this.token.approve(spender, amount, { from: owner });
 
-    //       it('emits an approval event', async function () {
-    //         const { logs } = await this.token.approve(spender, amount, { from: owner });
+              // (await this.token.allowance(owner, spender)).should.be.bignumber.equal(amount);
+              var encodedABI = (await this.token.methods.approve(spender, amount)).encodeABI();
+              var transactionObject  = await utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
 
-    //         expectEvent.inLogs(logs, 'Approval', {
-    //           owner: owner,
-    //           spender: spender,
-    //           value: amount,
-    //         });
-    //       });
+              var balance = await this.token.methods.allowance(owner, spender).call();
+              (balance).should.be.bignumber.equal(amount);
+            });
+          });
+        });
+      });
 
-    //       describe('when there was no approved amount before', function () {
-    //         it('approves the requested amount', async function () {
-    //           await this.token.approve(spender, amount, { from: owner });
+      //Need to work
+      // describe('when the spender is the zero address', function () {
+      //   const amount = 100;
+      //   const spender = ZERO_ADDRESS;
 
-    //           (await this.token.allowance(owner, spender)).should.be.bignumber.equal(amount);
-    //         });
-    //       });
-
-    //       describe('when the spender had an approved amount', function () {
-    //         beforeEach(async function () {
-    //           await this.token.approve(spender, 1, { from: owner });
-    //         });
-
-    //         it('approves the requested amount and replaces the previous one', async function () {
-    //           await this.token.approve(spender, amount, { from: owner });
-
-    //           (await this.token.allowance(owner, spender)).should.be.bignumber.equal(amount);
-    //         });
-    //       });
-    //     });
-    //   });
-
-    //   describe('when the spender is the zero address', function () {
-    //     const amount = 100;
-    //     const spender = ZERO_ADDRESS;
-
-    //     it('reverts', async function () {
-    //       await assertRevert(this.token.approve(spender, amount, { from: owner }));
-    //     });
-    //   });
-    // });
+      //   it('reverts', async function () {
+      //     await assertRevert(this.token.approve(spender, amount, { from: owner }));
+      //   });
+      // });
+    });
 
     // describe('transfer from', function () {
     //   const spender = recipient;
@@ -174,100 +218,134 @@ setTimeout(function () {
 
     //     describe('when the spender has enough approved balance', function () {
     //       beforeEach(async function () {
-    //         await this.token.approve(spender, 100, { from: owner });
+    //         // await this.token.approve(spender, 100, { from: owner });
+    //         var balance = await this.token.methods.balanceOf(owner).call();
+    //           // console.log(  balance, " Before - Balance Owner")  
+
+    //         var encodedABI =    (await this.token.methods.approve(spender, 100)).encodeABI();
+    //         var transactionObject  = await utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
+            
+    //         var balance = await this.token.methods.balanceOf(owner).call();
+    //           // console.log(  balance, " After - Balance Owner")  
+
+    //         var balance = await this.token.methods.balanceOf(spender).call();
+    //           // console.log(  balance, " Before - Balance Spender")
     //       });
 
     //       describe('when the owner has enough balance', function () {
     //         const amount = 100;
 
     //         it('transfers the requested amount', async function () {
-    //           await this.token.transferFrom(owner, to, amount, { from: spender });
+              
+    //           var balance = await this.token.methods.balanceOf(owner).call();
+    //           // console.log(  balance, " Before - Balance Owner")        
+    //           var balance = await this.token.methods.balanceOf(to).call();        
+    //           // console.log( balance , "Before - Balance To")
+              
+    //           // await this.token.transferFrom(owner, to, amount, { from: spender });
+    //           var encodedABI = await this.token.methods.transferFrom(spender, to, amount).encodeABI(); //replaced owner with spender
+    //           var transactionObject = await utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
 
-    //           (await this.token.balanceOf(owner)).should.be.bignumber.equal(0);
+    //           var balance = await this.token.methods.balanceOf(spender).call(); //replaced owner with spender
+    //           // console.log(  balance, " After - Balance Owner")        
+    //           var balance = await this.token.methods.balanceOf(to).call();        
+    //           // console.log( balance , "After - Balance To")
 
-    //           (await this.token.balanceOf(to)).should.be.bignumber.equal(amount);
+    //           (await this.token.methods.balanceOf(spender).call()).should.be.bignumber.equal(0); //replaced owner with spender
+
+    //           (await this.token.methods.balanceOf(to).call()).should.be.bignumber.equal(amount);
     //         });
 
-    //         it('decreases the spender allowance', async function () {
-    //           await this.token.transferFrom(owner, to, amount, { from: spender });
+    // //         it('decreases the spender allowance', async function () {
+    // //           await this.token.transferFrom(owner, to, amount, { from: spender });
 
-    //           (await this.token.allowance(owner, spender)).should.be.bignumber.equal(0);
-    //         });
+    // //           (await this.token.allowance(owner, spender)).should.be.bignumber.equal(0);
+    // //         });
 
-    //         it('emits a transfer event', async function () {
-    //           const { logs } = await this.token.transferFrom(owner, to, amount, { from: spender });
+    // //         it('emits a transfer event', async function () {
+    // //           const { logs } = await this.token.transferFrom(owner, to, amount, { from: spender });
 
-    //           expectEvent.inLogs(logs, 'Transfer', {
-    //             from: owner,
-    //             to: to,
-    //             value: amount,
-    //           });
-    //         });
+    // //           expectEvent.inLogs(logs, 'Transfer', {
+    // //             from: owner,
+    // //             to: to,
+    // //             value: amount,
+    // //           });
+    // //         });
     //       });
 
-    //       describe('when the owner does not have enough balance', function () {
-    //         const amount = 101;
+    // //       describe('when the owner does not have enough balance', function () {
+    // //         const amount = 101;
 
-    //         it('reverts', async function () {
-    //           await assertRevert(this.token.transferFrom(owner, to, amount, { from: spender }));
-    //         });
-    //       });
+    // //         it('reverts', async function () {
+    // //           await assertRevert(this.token.transferFrom(owner, to, amount, { from: spender }));
+    // //         });
+    // //       });
     //     });
 
-    //     describe('when the spender does not have enough approved balance', function () {
-    //       beforeEach(async function () {
-    //         await this.token.approve(spender, 99, { from: owner });
-    //       });
+    // //     describe('when the spender does not have enough approved balance', function () {
+    // //       beforeEach(async function () {
+    // //         await this.token.approve(spender, 99, { from: owner });
+    // //       });
 
-    //       describe('when the owner has enough balance', function () {
-    //         const amount = 100;
+    // //       describe('when the owner has enough balance', function () {
+    // //         const amount = 100;
 
-    //         it('reverts', async function () {
-    //           await assertRevert(this.token.transferFrom(owner, to, amount, { from: spender }));
-    //         });
-    //       });
+    // //         it('reverts', async function () {
+    // //           await assertRevert(this.token.transferFrom(owner, to, amount, { from: spender }));
+    // //         });
+    // //       });
 
-    //       describe('when the owner does not have enough balance', function () {
-    //         const amount = 101;
+    // //       describe('when the owner does not have enough balance', function () {
+    // //         const amount = 101;
 
-    //         it('reverts', async function () {
-    //           await assertRevert(this.token.transferFrom(owner, to, amount, { from: spender }));
-    //         });
-    //       });
-    //     });
+    // //         it('reverts', async function () {
+    // //           await assertRevert(this.token.transferFrom(owner, to, amount, { from: spender }));
+    // //         });
+    // //       });
+    // //     });
     //   });
 
-    //   describe('when the recipient is the zero address', function () {
-    //     const amount = 100;
-    //     const to = ZERO_ADDRESS;
+    // //   describe('when the recipient is the zero address', function () {
+    // //     const amount = 100;
+    // //     const to = ZERO_ADDRESS;
 
-    //     beforeEach(async function () {
-    //       await this.token.approve(spender, amount, { from: owner });
-    //     });
+    // //     beforeEach(async function () {
+    // //       await this.token.approve(spender, amount, { from: owner });
+    // //     });
 
-    //     it('reverts', async function () {
-    //       await assertRevert(this.token.transferFrom(owner, to, amount, { from: spender }));
-    //     });
-    //   });
+    // //     it('reverts', async function () {
+    // //       await assertRevert(this.token.transferFrom(owner, to, amount, { from: spender }));
+    // //     });
+    // //   });
     // });
 
-    // describe('decrease allowance', function () {
-    //   describe('when the spender is not the zero address', function () {
-    //     const spender = recipient;
+    describe('decrease allowance', function () {
+      describe('when the spender is not the zero address', function () {
+        const spender = recipient;
 
-    //     function shouldDecreaseApproval (amount) {
-    //       describe('when there was no approved amount before', function () {
-    //         it('reverts', async function () {
-    //           await assertRevert(this.token.decreaseAllowance(spender, amount, { from: owner }));
-    //         });
-    //       });
+        function shouldDecreaseApproval (amount) {
+          describe('when there was no approved amount before', function () {
+            it('reverts', async function () {
 
-    //       describe('when the spender had an approved amount', function () {
-    //         const approvedAmount = amount;
+              // await assertRevert(this.token.decreaseAllowance(spender, amount, { from: owner }));
 
-    //         beforeEach(async function () {
-    //           ({ logs: this.logs } = await this.token.approve(spender, approvedAmount, { from: owner }));
-    //         });
+              var encodedABI = (await this.token.methods.decreaseAllowance(spender, amount)).encodeABI();
+              var transactionObject  = utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
+
+              assertRevert(transactionObject)
+
+            });
+          });
+
+          describe('when the spender had an approved amount', function () {
+            const approvedAmount = amount;
+
+            beforeEach(async function () {
+              // ({ logs: this.logs } = await this.token.approve(spender, approvedAmount, { from: owner }));
+              var encodedABI = (await this.token.methods.approve(spender, approvedAmount)).encodeABI();
+              var transactionObject  = await utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
+
+            });
 
     //         it('emits an approval event', async function () {
     //           const { logs } = await this.token.decreaseAllowance(spender, approvedAmount, { from: owner });
@@ -279,45 +357,61 @@ setTimeout(function () {
     //           });
     //         });
 
-    //         it('decreases the spender allowance subtracting the requested amount', async function () {
-    //           await this.token.decreaseAllowance(spender, approvedAmount - 1, { from: owner });
+            it('decreases the spender allowance subtracting the requested amount', async function () {
+              // await this.token.decreaseAllowance(spender, approvedAmount - 1, { from: owner });
+              var encodedABI = (await this.token.methods.decreaseAllowance(spender, approvedAmount - 1)).encodeABI();
+              var transactionObject  = await utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
 
-    //           (await this.token.allowance(owner, spender)).should.be.bignumber.equal(1);
-    //         });
+              (await this.token.methods.allowance(owner, spender).call()).should.be.bignumber.equal(1);
+            });
 
-    //         it('sets the allowance to zero when all allowance is removed', async function () {
-    //           await this.token.decreaseAllowance(spender, approvedAmount, { from: owner });
-    //           (await this.token.allowance(owner, spender)).should.be.bignumber.equal(0);
-    //         });
+            it('sets the allowance to zero when all allowance is removed', async function () {
+              // await this.token.decreaseAllowance(spender, approvedAmount, { from: owner });
+              var encodedABI = (await this.token.methods.decreaseAllowance(spender, approvedAmount)).encodeABI();
+              var transactionObject  = await utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
 
-    //         it('reverts when more than the full allowance is removed', async function () {
-    //           await assertRevert(this.token.decreaseAllowance(spender, approvedAmount + 1, { from: owner }));
-    //         });
-    //       });
-    //     }
+              
+              (await this.token.methods.allowance(owner, spender).call()).should.be.bignumber.equal(0);
+            });
 
-    //     describe('when the sender has enough balance', function () {
-    //       const amount = 100;
+            it('reverts when more than the full allowance is removed', async function () {
+              // await assertRevert(this.token.decreaseAllowance(spender, approvedAmount + 1, { from: owner }));
+              var encodedABI = (await this.token.methods.decreaseAllowance(spender, approvedAmount + 1)).encodeABI();
+              var transactionObject  = utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
+              console.log('Transaction log ' + JSON.stringify(transactionObject))
+              
+              assertRevert(transactionObject) //Expected revert not received
+            });
+          });
+        }
 
-    //       shouldDecreaseApproval(amount);
-    //     });
+        describe('when the sender has enough balance', function () {
+          const amount = 100;
 
-    //     describe('when the sender does not have enough balance', function () {
-    //       const amount = 101;
+          shouldDecreaseApproval(amount);
+        });
 
-    //       shouldDecreaseApproval(amount);
-    //     });
-    //   });
+        describe('when the sender does not have enough balance', function () {
+          const amount = 101;
 
-    //   describe('when the spender is the zero address', function () {
-    //     const amount = 100;
-    //     const spender = ZERO_ADDRESS;
+          shouldDecreaseApproval(amount);
+        });
+      });
 
-    //     it('reverts', async function () {
-    //       await assertRevert(this.token.decreaseAllowance(spender, amount, { from: owner }));
-    //     });
-    //   });
-    // });
+      describe('when the spender is the zero address', function () {
+        const amount = 100;
+        const spender = ZERO_ADDRESS;
+
+        it('reverts', async function () {
+          await assertRevert(this.token.decreaseAllowance(spender, amount, { from: owner }));
+            var encodedABI = (await this.token.methods.decreaseAllowance(spender, amount)).encodeABI();
+            var transactionObject  = utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
+            console.log('Transaction log ' + JSON.stringify(transactionObject))
+            
+            assertRevert(transactionObject) //Expected revert not received
+        });
+      });
+    });
 
     // describe('increase allowance', function () {
     //   const amount = 100;
@@ -326,79 +420,85 @@ setTimeout(function () {
     //     const spender = recipient;
 
     //     describe('when the sender has enough balance', function () {
-    //       it('emits an approval event', async function () {
-    //         const { logs } = await this.token.increaseAllowance(spender, amount, { from: owner });
+    // //       it('emits an approval event', async function () {
+    // //         const { logs } = await this.token.increaseAllowance(spender, amount, { from: owner });
 
-    //         expectEvent.inLogs(logs, 'Approval', {
-    //           owner: owner,
-    //           spender: spender,
-    //           value: amount,
-    //         });
-    //       });
+    // //         expectEvent.inLogs(logs, 'Approval', {
+    // //           owner: owner,
+    // //           spender: spender,
+    // //           value: amount,
+    // //         });
+    // //       });
 
     //       describe('when there was no approved amount before', function () {
     //         it('approves the requested amount', async function () {
-    //           await this.token.increaseAllowance(spender, amount, { from: owner });
+    //           // await this.token.increaseAllowance(spender, amount, { from: owner });
+    //           var encodedABI = (await this.token.methods.increaseAllowance(spender, amount)).encodeABI();
+    //           var transactionObject  = utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);       
 
-    //           (await this.token.allowance(owner, spender)).should.be.bignumber.equal(amount);
+    //           (await this.token.methods.allowance(owner, spender).call()).should.be.bignumber.equal(amount);
     //         });
     //       });
 
     //       describe('when the spender had an approved amount', function () {
     //         beforeEach(async function () {
-    //           await this.token.approve(spender, 1, { from: owner });
+    //           // await this.token.approve(spender, 1, { from: owner });
+    //           var encodedABI = (await this.token.methods.approve(spender, 1)).encodeABI();
+    //           var transactionObject  = utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);
     //         });
 
     //         it('increases the spender allowance adding the requested amount', async function () {
-    //           await this.token.increaseAllowance(spender, amount, { from: owner });
+    //           // await this.token.increaseAllowance(spender, amount, { from: owner });
+    //           var encodedABI = (await this.token.methods.increaseAllowance(spender, amount)).encodeABI();
+    //           var transactionObject  = utils.sendMethodTransaction(owner,deployedERC20MockAddress,encodedABI,privateKey[owner],web3,0);   
 
-    //           (await this.token.allowance(owner, spender)).should.be.bignumber.equal(amount + 1);
+    //           (await this.token.methods.allowance(owner, spender).call()).should.be.bignumber.equal(amount + 1);
     //         });
     //       });
     //     });
 
-    //     describe('when the sender does not have enough balance', function () {
-    //       const amount = 101;
+    // //     describe('when the sender does not have enough balance', function () {
+    // //       const amount = 101;
 
-    //       it('emits an approval event', async function () {
-    //         const { logs } = await this.token.increaseAllowance(spender, amount, { from: owner });
+    // //       it('emits an approval event', async function () {
+    // //         const { logs } = await this.token.increaseAllowance(spender, amount, { from: owner });
 
-    //         expectEvent.inLogs(logs, 'Approval', {
-    //           owner: owner,
-    //           spender: spender,
-    //           value: amount,
-    //         });
-    //       });
+    // //         expectEvent.inLogs(logs, 'Approval', {
+    // //           owner: owner,
+    // //           spender: spender,
+    // //           value: amount,
+    // //         });
+    // //       });
 
-    //       describe('when there was no approved amount before', function () {
-    //         it('approves the requested amount', async function () {
-    //           await this.token.increaseAllowance(spender, amount, { from: owner });
+    // //       describe('when there was no approved amount before', function () {
+    // //         it('approves the requested amount', async function () {
+    // //           await this.token.increaseAllowance(spender, amount, { from: owner });
 
-    //           (await this.token.allowance(owner, spender)).should.be.bignumber.equal(amount);
-    //         });
-    //       });
+    // //           (await this.token.allowance(owner, spender)).should.be.bignumber.equal(amount);
+    // //         });
+    // //       });
 
-    //       describe('when the spender had an approved amount', function () {
-    //         beforeEach(async function () {
-    //           await this.token.approve(spender, 1, { from: owner });
-    //         });
+    // //       describe('when the spender had an approved amount', function () {
+    // //         beforeEach(async function () {
+    // //           await this.token.approve(spender, 1, { from: owner });
+    // //         });
 
-    //         it('increases the spender allowance adding the requested amount', async function () {
-    //           await this.token.increaseAllowance(spender, amount, { from: owner });
+    // //         it('increases the spender allowance adding the requested amount', async function () {
+    // //           await this.token.increaseAllowance(spender, amount, { from: owner });
 
-    //           (await this.token.allowance(owner, spender)).should.be.bignumber.equal(amount + 1);
-    //         });
-    //       });
-    //     });
+    // //           (await this.token.allowance(owner, spender)).should.be.bignumber.equal(amount + 1);
+    // //         });
+    // //       });
+    //     // });
     //   });
 
-    //   describe('when the spender is the zero address', function () {
-    //     const spender = ZERO_ADDRESS;
+    // //   describe('when the spender is the zero address', function () {
+    // //     const spender = ZERO_ADDRESS;
 
-    //     it('reverts', async function () {
-    //       await assertRevert(this.token.increaseAllowance(spender, amount, { from: owner }));
-    //     });
-    //   });
+    // //     it('reverts', async function () {
+    // //       await assertRevert(this.token.increaseAllowance(spender, amount, { from: owner }));
+    // //     });
+    // //   });
     // });
 
     // describe('_mint', function () {
