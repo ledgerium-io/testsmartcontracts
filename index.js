@@ -4,10 +4,11 @@ const Web3 = require('web3');
 const Utils =  require('./web3util');
 
 var provider;
-var host,port;
-var web3;
-web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
-global.web3 = web3;
+var protocol,host,port,web3;
+var subscribePastEventsFlag = false;
+var webSocketProtocolFlag = false;
+global.webSocketProtocolFlag = webSocketProtocolFlag;
+global.subscribePastEventsFlag = subscribePastEventsFlag;
 
 var web3;
 global.web3 = web3;
@@ -104,7 +105,7 @@ var main = async function () {
   return;
 }
 
-// main();
+main();
 
 async function deployERC20MockContract() {
 
