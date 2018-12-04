@@ -4,11 +4,10 @@ const Web3 = require('web3');
 const Utils =  require('./web3util');
 
 var provider;
-var protocol,host,port,web3;
-var subscribePastEventsFlag = false;
-var webSocketProtocolFlag = false;
-global.webSocketProtocolFlag = webSocketProtocolFlag;
-global.subscribePastEventsFlag = subscribePastEventsFlag;
+var host,port;
+var web3;
+web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
+global.web3 = web3;
 
 var web3;
 global.web3 = web3;
@@ -105,7 +104,7 @@ var main = async function () {
   return;
 }
 
-main();
+// main();
 
 async function deployERC20MockContract() {
 
@@ -158,32 +157,32 @@ async function deployERC20MockContract() {
     //[4.1.1] - When the sender doesnot have enough balance
     var encodedABI = mock20ERC.methods.transfer(accountAddressList[1],100).encodeABI();
     var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedERC20MockAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
-    console.log("[4.1.1] TransactionLog for ERC20Mock transfer without enough balance-", transactionObject.transactionHash);
+    console.log("TransactionLog for ERC20Mock transfer without enough balance-", transactionObject.transactionHash);
 
     //[4.1.2]
-    var encodedABI = mock20ERC.methods.transfer(accountAddressList[1],123).encodeABI();
-    var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedERC20MockAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
-    console.log("[4.1.2] TransactionLog for ERC20Mock transfer with enough balance-", transactionObject.transactionHash);
+    // var encodedABI = mock20ERC.methods.transfer(accountAddressList[1],123).encodeABI();
+    // var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedERC20MockAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
+    // console.log("TransactionLog for ERC20Mock transfer with enough balance-", transactionObject.transactionHash);
 
     //[4.2] - When the recipient is the zero address
     var zeroAddress = '0x0000000000000000000000000000000000000000';
-    var encodedABI = mock20ERC.methods.transfer(zeroAddress,123).encodeABI();
-    var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedERC20MockAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
-    console.log("[4.2] TransactionLog for ERC20Mock transfer to zero address-", transactionObject.transactionHash);
+    // var encodedABI = mock20ERC.methods.transfer(zeroAddress,123).encodeABI();
+    // var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedERC20MockAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
+    // console.log("TransactionLog for ERC20Mock transfer to zero address-", transactionObject.transactionHash);
 
-    result = await mock20ERC.methods.balanceOf(accountAddressList[1]).call();
-    console.log("balanceOf", result, "of account",  accountAddressList[1], "it should be 223!");
+    // result = await mock20ERC.methods.balanceOf(accountAddressList[1]).call();
+    // console.log("balanceOf", result, "of account",  accountAddressList[1]);
 
-    result = await mock20ERC.methods.balanceOf(accountAddressList[0]).call();
-    console.log("balanceOf", result, "of account",  accountAddressList[0], "it should be 2277!");
+    // result = await mock20ERC.methods.balanceOf(accountAddressList[0]).call();
+    // console.log("balanceOf", result, "of account",  accountAddressList[0]);
 
     //[5] - Approve
     //[5.1] - When the spender is not the zero address
     //[5.1.1] - When the sender has enough balance
-    var encodedABI = mock20ERC.methods.approve(ethAccountToUse, 100).encodeABI();
-    var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedERC20MockAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
-    var logs = await mock20ERC.getPastEvents('Approval');
-    console.log("[5.1] TransactionLog for ERC20Mock approve ", JSON.stringify(logs));
+    // var encodedABI = mock20ERC.methods.approve(ethAccountToUse, 100).encodeABI();
+    // var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedERC20MockAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
+    // var logs = await mock20ERC.getPastEvents('Approval');
+    // console.log("TransactionLog for ERC20Mock approve ", JSON.stringify(logs));
 
     //[5.1.2] - When there was no approved amount before
     // var result = await mock20ERC.methods.allowance(ethAccountToUse, ethAccountToUse).call();
@@ -252,10 +251,10 @@ async function deployERC20MockContract() {
     // console.log("TransactionLog for ERC20Mock decreaseAllowance without approved amount", transactionObject.transactionHash);
 
     //[7.1.2] - When the spender had an approved amount
-    // var encodedABI = mock20ERC.methods.approve(accountAddressList[2], 100).encodeABI();
-    // var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedERC20MockAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
-    // var result = await mock20ERC.methods.allowance(ethAccountToUse, accountAddressList[2]).call();
-    // console.log("Allownace of ", accountAddressList[2], ' is ', result);
+    var encodedABI = mock20ERC.methods.approve(accountAddressList[2], 100).encodeABI();
+    var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedERC20MockAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
+    var result = await mock20ERC.methods.allowance(ethAccountToUse, accountAddressList[2]).call();
+    console.log("Allownace of ", accountAddressList[2], ' is ', result);
 
     // var encodedABI = await mock20ERC.methods.decreaseAllowance(accountAddressList[2], 50).encodeABI();
     // var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedERC20MockAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
@@ -310,19 +309,19 @@ async function deployERC20MockContract() {
 
     //[9] - Mint
     //[9.1] - Rejects a null account
-    var encodedABI = await mock20ERC.methods.mint(zeroAddress, 50).encodeABI();
-    var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedERC20MockAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
-    console.log('Transaction logs for ERC20Mock mint for zero address ' + transactionObject.transactionHash)
+    // var encodedABI = await mock20ERC.methods.mint(zeroAddress, 50).encodeABI();
+    // var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedERC20MockAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
+    // console.log('Transaction logs for ERC20Mock mint for zero address ' + transactionObject.transactionHash)
 
     //[9.2] - Increments totalSupply
-    var encodedABI = await ERC20Mock.methods.mint(ethAccountToUse, 100).encodeABI();
-    var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedERC20MockAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
-    var result = await ERC20Mock.methods.totalSupply().call();
-    console.log('Increment total Supply ' + result)
-    var result1 = await ERC20Mock.methods.balanceOf(ethAccountToUse).call();
-    /**? */console.log('Balance of ', ethAccountToUse, ' is ' , result1)
-    var logs = await ERC20Mock.getPastEvents('Transfer');
-    console.log('Transfer event after minting '+ JSON.stringify(logs))
+    // var encodedABI = await ERC20Mock.methods.mint(ethAccountToUse, 100).encodeABI();
+    // var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedERC20MockAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
+    // var result = await ERC20Mock.methods.totalSupply().call();
+    // console.log('Increment total Supply ' + result)
+    // var result1 = await ERC20Mock.methods.balanceOf(ethAccountToUse).call();
+    // /**? */console.log('Balance of ', ethAccountToUse, ' is ' , result1)
+    // var logs = await ERC20Mock.getPastEvents('Transfer');
+    // console.log('Transfer event after minting '+ JSON.stringify(logs))
 
     //[10] - burn
     //[10.1] - Rejects a null account
