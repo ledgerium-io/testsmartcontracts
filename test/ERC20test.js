@@ -8,7 +8,7 @@ require('chai')
   .should();
 
 setTimeout(function(){
-describe.skip('ERC20', function () {
+describe('ERC20', function () {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
   
   before(function () {
@@ -113,8 +113,10 @@ describe.skip('ERC20', function () {
 
   //         it('approves the requested amount and replaces the previous one', async function () {
   //           await this.token.approve(spender, amount, { from: owner });
-
-  //           (await this.token.allowance(owner, spender)).should.be.bignumber.equal(amount);
+  var encodedABI = mock20ERC.methods.transfer(accountAddressList[1],123).encodeABI();
+  var transactio
+  //           
+  (await this.token.allowance(owner, spender)).should.be.bignumber.equal(amount);
   //         });
   //       });
   //     });

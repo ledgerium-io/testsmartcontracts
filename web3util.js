@@ -123,8 +123,8 @@ class utils {
             var gasPrice = await web3.eth.getGasPrice();
             console.log("gasPrice ",web3.utils.toHex(gasPrice)); 
 
-            var balance = await web3.eth.getBalance(fromAccountAddress);
-            console.log("FromAccount", fromAccountAddress, "has balance of", web3.utils.fromWei(balance, 'ether'), "ether");
+            // var balance = await web3.eth.getBalance(fromAccountAddress);
+            // console.log("FromAccount", fromAccountAddress, "has balance of", web3.utils.fromWei(balance, 'ether'), "ether");
             
             let nonceToUse = await web3.eth.getTransactionCount(fromAccountAddress, 'pending');
             console.log("nonceToUse ",nonceToUse);
@@ -150,6 +150,37 @@ class utils {
             //     receipt = await web3.eth.getTransactionReceipt(transactionHash);
             // }
             // while(receipt == null)
+            if(transactionHash.status)
+                return transactionHash;
+            else
+                return "";
+        }
+        catch (error) {
+            console.log("Error in utils.sendMethodTransaction(): " + error);
+            return "";
+        }
+    }
+
+    async sendUnsignedTransaction (fromAccountAddress, toContractAddress, methodData, web3){
+        try
+        {
+            var gasPrice = await web3.eth.getGasPrice();
+            console.log("gasPrice ",web3.utils.toHex(gasPrice)); 
+      
+            let nonceToUse = await web3.eth.getTransactionCount(fromAccountAddress, 'pending');
+            console.log("nonceToUse ",nonceToUse);
+            const txParams = {
+                nonce: nonceToUse,
+                gasPrice: web3.utils.toHex(gasPrice),
+                gasLimit: '0x47b760',
+                from: fromAccountAddress,
+                to: toContractAddress,
+                value: web3.utils.toHex(0),
+                data: methodData
+                //"privateFor" : privateFor
+            }
+      
+            let transactionHash = await web3.eth.sendTransaction(txParams);
             if(transactionHash.status)
                 return transactionHash;
             else
