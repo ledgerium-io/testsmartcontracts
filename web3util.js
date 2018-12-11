@@ -105,12 +105,15 @@ class utils {
                 const serializedTx = tx.serialize();
 
                 transactionHash = await _web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'));
-                var receipt;
-                do{
-                    receipt = await _web3.eth.getTransactionReceipt(transactionHash);
-                }
-                while(receipt == null)
-                return receipt;
+                // var receipt;
+                // do{
+                //     receipt = await _web3.eth.getTransactionReceipt(transactionHash);
+                // }
+                //while(receipt == null)
+                if(transactionHash.status)
+                    return transactionHash;
+                else
+                    return "";
             }
         } catch (error) {
             console.log("Exception in utils.sendMethodTransactionOld(): " + error);
@@ -123,8 +126,8 @@ class utils {
             var gasPrice = await web3.eth.getGasPrice();
             console.log("gasPrice ",web3.utils.toHex(gasPrice)); 
 
-            var balance = await web3.eth.getBalance(fromAccountAddress);
-            console.log("FromAccount", fromAccountAddress, "has balance of", web3.utils.fromWei(balance, 'ether'), "ether");
+            // var balance = await web3.eth.getBalance(fromAccountAddress);
+            // console.log("FromAccount", fromAccountAddress, "has balance of", web3.utils.fromWei(balance, 'ether'), "ether");
             
             let nonceToUse = await web3.eth.getTransactionCount(fromAccountAddress, 'pending');
             console.log("nonceToUse ",nonceToUse);
@@ -160,6 +163,37 @@ class utils {
             return "";
         }
     }
+
+    async sendUnsignedTransaction (fromAccountAddress, toContractAddress, methodData, web3){
+        try
+        {
+            var gasPrice = await web3.eth.getGasPrice();
+            console.log("gasPrice ",web3.utils.toHex(gasPrice)); 
+      
+            let nonceToUse = await web3.eth.getTransactionCount(fromAccountAddress, 'pending');
+            console.log("nonceToUse ",nonceToUse);
+            const txParams = {
+                nonce: nonceToUse,
+                gasPrice: web3.utils.toHex(gasPrice),
+                gasLimit: '0x47b760',
+                from: fromAccountAddress,
+                to: toContractAddress,
+                value: web3.utils.toHex(0),
+                data: methodData
+                //"privateFor" : privateFor
+            }
+      
+            let transactionHash = await web3.eth.sendTransaction(txParams);
+            if(transactionHash.status)
+                return transactionHash;
+            else
+                return "";
+        }
+        catch (error) {
+            console.log("Error in utils.sendMethodTransaction(): " + error);
+            return "";
+        }
+    }
     
     /** To get estimate of gas consumptio for the given transaction prior to actual
      * execution on blockchain! Extremely useful feature however, giving issues on quorum
@@ -182,10 +216,21 @@ class utils {
         return receipt;
     }
     
+    /** to read .abi and .bin file and return the values
+    */ 
     readSolidityContractJSON (filename) {
-        var json = JSON.parse(fs.readFileSync(filename, 'utf8'));
-        let abi = JSON.stringify(json.abi);
-        return [abi, json.bytecode];
+        let jsonAbi, jsonBytecode;
+        try {
+            jsonAbi = JSON.parse(fs.readFileSync(filename + ".abi", 'utf8'));
+            jsonBytecode = "0x" + fs.readFileSync(filename + ".bin", 'utf8');
+            return [JSON.stringify(jsonAbi), jsonBytecode];
+        } catch (error) {
+            if (error.code === 'ENOENT')
+                console.log(error.path, 'file not found!');
+            else
+                console.log("readSolidityContractJSON error ", error);
+            return ["",""];
+        }
     }
 
     compileSolidityContract (filename,contractName) {

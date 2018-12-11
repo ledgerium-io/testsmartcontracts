@@ -1,35 +1,19 @@
-pragma solidity 0.4.24;
+pragma solidity ^0.5.1;
 
-contract Mortal {
-    /* Define variable owner of the type address */
-    address internal owner;
-
-    /* This function is executed at initialization and sets the owner of the contract */
-    constructor() public { owner = msg.sender; }
-
-    /* Function to recover the funds on the contract */
-    function kill() public { if (msg.sender == owner) selfdestruct(owner); }
-}
-
-contract Greeter is Mortal {
+contract Greeter {
     /* Define variable greeting of the type string */
     string private greeting;
     uint32 private myNumber;
 
     /* This runs when the contract is executed */
-    constructor(string _greeting) public {
+    constructor(string memory _greeting) public {
         greeting = _greeting;
         myNumber = 0;
     }
 
     /* greet function */
-    function greet() public view returns (string) {
+    function greet() public view returns (string memory) {
         return greeting;
-    }
-
-    /* getOwner function */
-    function getOwner() public view returns (address) {
-        return owner;
     }
 
     /* setMyNumber function */

@@ -13,15 +13,6 @@
  */
 
 module.exports = {
-  networks: {
-    development: {
-      host: 'localhost',
-      port: 8545,
-      gasPrice: 0,
-      gas: 4500000,
-      network_id: '*', // eslint-disable-line camelcase
-      //from : "0x44643353444f4b42b46ed28e668c204db6dbb7c3"
-      from : "0x1ce135327d2372d556e2ea822bdd92803e5697cf"
-    }
-  }
+  // See <http://truffleframework.com/docs/advanced/configuration>
+  // to customize your Truffle configuration!
 };  
