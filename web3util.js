@@ -105,12 +105,15 @@ class utils {
                 const serializedTx = tx.serialize();
 
                 transactionHash = await _web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'));
-                var receipt;
-                do{
-                    receipt = await _web3.eth.getTransactionReceipt(transactionHash);
-                }
-                while(receipt == null)
-                return receipt;
+                // var receipt;
+                // do{
+                //     receipt = await _web3.eth.getTransactionReceipt(transactionHash);
+                // }
+                //while(receipt == null)
+                if(transactionHash.status)
+                    return transactionHash;
+                else
+                    return "";
             }
         } catch (error) {
             console.log("Exception in utils.sendMethodTransactionOld(): " + error);
@@ -213,10 +216,21 @@ class utils {
         return receipt;
     }
     
+    /** to read .abi and .bin file and return the values
+    */ 
     readSolidityContractJSON (filename) {
-        var json = JSON.parse(fs.readFileSync(filename, 'utf8'));
-        let abi = JSON.stringify(json.abi);
-        return [abi, json.bytecode];
+        let jsonAbi, jsonBytecode;
+        try {
+            jsonAbi = JSON.parse(fs.readFileSync(filename + ".abi", 'utf8'));
+            jsonBytecode = "0x" + fs.readFileSync(filename + ".bin", 'utf8');
+            return [JSON.stringify(jsonAbi), jsonBytecode];
+        } catch (error) {
+            if (error.code === 'ENOENT')
+                console.log(error.path, 'file not found!');
+            else
+                console.log("readSolidityContractJSON error ", error);
+            return ["",""];
+        }
     }
 
     compileSolidityContract (filename,contractName) {

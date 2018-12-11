@@ -115,10 +115,11 @@ async function deployERC20MockContract() {
     var ethAccountToUse = accountAddressList[0];
     
     // Todo: Read ABI from dynamic source.
-    var filename = __dirname + "/build/contracts/ERC20Mock.json";
+    var filename = __dirname + "/build/contracts/ERC20Mock";
     var value = utils.readSolidityContractJSON(filename);
-    if(value.length <= 0)
+    if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
         return;
+    }
     
     var deployedERC20MockAddress;
     if(!usecontractconfigFlag){
@@ -340,51 +341,48 @@ async function deployERC20MockContract() {
     // var encodedABI = await ERC20Mock.methods.burnFrom(zeroAddress, 1);
     // var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedERC20MockAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
     // console.log('Transaction log for burnFrom - zeroAddress ' + transactionObject.transactionHash)
-
-
-
 }
 
 async function testGreetingContract() {
     
-      accountAddressList = global.accountAddressList;
-      privateKey = global.privateKey;  
+    accountAddressList = global.accountAddressList;
+    privateKey = global.privateKey;  
   
-      // Todo: Read ABI from dynamic source.
-      var value = utils.readSolidityContractJSON("./build/contracts/Greeter.json");
-      if(value.length <= 0){
-          return;
-      }
-      var ethAccountToUse = accountAddressList[0];
-      var deployedAddressGreeter;
-      if(!usecontractconfigFlag){
-          let constructorParameters = [];
-          constructorParameters.push("Hi Ledgerium");
-          //value[0] = Contract ABI and value[1] =  Contract Bytecode
-          //var deployedAddressGreeter = "0x0000000000000000000000000000000000002020";
-          let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
-          let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
-          deployedAddressGreeter = transactionHash.contractAddress;
-          console.log("Greeter deployedAddress ", deployedAddressGreeter);
+    // Todo: Read ABI from dynamic source.
+    var value = utils.readSolidityContractJSON("./build/contracts/Greeter");
+    if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+        return;
+    }
+    var ethAccountToUse = accountAddressList[0];
+    var deployedAddressGreeter;
+    if(!usecontractconfigFlag){
+        let constructorParameters = [];
+        constructorParameters.push("Hi Ledgerium");
+        //value[0] = Contract ABI and value[1] =  Contract Bytecode
+        //var deployedAddressGreeter = "0x0000000000000000000000000000000000002020";
+        let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
+        let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
+        deployedAddressGreeter = transactionHash.contractAddress;
+        console.log("Greeter deployedAddress ", deployedAddressGreeter);
 
-          utils.writeContractsINConfig("Greeter",deployedAddressGreeter);
-      }
-      else{
-          deployedAddressGreeter = utils.readContractFromConfigContracts("Greeter");
-      }
-      
-      var greeting = new web3.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
-      global.greeting = greeting;
-      
-      var result = await greeting.methods.getMyNumber().call({from : ethAccountToUse});
-      console.log("getMyNumber", result);
-      
-      let encodedABI = greeting.methods.setMyNumber(499).encodeABI();
-      var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedAddressGreeter,encodedABI,privateKey[ethAccountToUse],web3,0);
-      console.log("TransactionLog for Greeter Setvalue -", transactionObject.transactionHash);
+        utils.writeContractsINConfig("Greeter",deployedAddressGreeter);
+    }
+    else{
+        deployedAddressGreeter = utils.readContractFromConfigContracts("Greeter");
+    }
+    
+    var greeting = new web3.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
+    global.greeting = greeting;
+    
+    var result = await greeting.methods.getMyNumber().call({from : ethAccountToUse});
+    console.log("getMyNumber", result);
+    
+    let encodedABI = greeting.methods.setMyNumber(499).encodeABI();
+    var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedAddressGreeter,encodedABI,privateKey[ethAccountToUse],web3,0);
+    console.log("TransactionLog for Greeter Setvalue -", transactionObject.transactionHash);
 
-      result = await greeting.methods.getMyNumber().call({from : ethAccountToUse});
-      console.log("getMyNumber after", result);
+    result = await greeting.methods.getMyNumber().call({from : ethAccountToUse});
+    console.log("getMyNumber after", result);
 }
 
 async function testInvoicesContract(invoiceID,hashVal) {
@@ -393,8 +391,8 @@ async function testInvoicesContract(invoiceID,hashVal) {
     privateKey = global.privateKey;  
 
     // Todo: Read ABI from dynamic source.
-    var value = utils.readSolidityContractJSON("./build/contracts/Invoice.json");
-    if(value.length <= 0){
+    var value = utils.readSolidityContractJSON("./build/contracts/Invoice");
+    if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
         return;
     }
     var ethAccountToUse = accountAddressList[0];
@@ -425,10 +423,11 @@ async function deployERC20Contract(){
     var ethAccountToUse = accountAddressList[0];
     
     // Todo: Read ABI from dynamic source.
-    var filename = __dirname + "/build/contracts/ERC20.json";
+    var filename = __dirname + "/build/contracts/ERC20";
     var value = utils.readSolidityContractJSON(filename);
-    if(value.length <= 0)
+    if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
         return;
+    }
     
     var deployedERC20Address;
     if(!usecontractconfigFlag){
@@ -477,27 +476,32 @@ async function testPersonalImportAccount() {
     privateKey = global.privateKey;  
   
     var password = "password";
-    //var ethereumAccountsList = await web3.eth.accounts;
-    //console.log("No of Ethereum accounts on the node ",ethereumAccountsList.length);
+    var ethereumAccountsList = await web3.eth.getAccounts();
+    console.log("No of Ethereum accounts on the node ",ethereumAccountsList.length);
     //if(ethereumAccountsList.length < 3)
     {
-      await utils.personalImportAccount(privateKey[accountAddressList[0]],password);
-      await utils.personalImportAccount(privateKey[accountAddressList[1]],password);
-      await utils.personalImportAccount(privateKey[accountAddressList[2]],password);
+        // await utils.personalImportAccount(privateKey[accountAddressList[0]],password);
+        // await utils.personalImportAccount(privateKey[accountAddressList[1]],password);
+        // await utils.personalImportAccount(privateKey[accountAddressList[2]],password);
+        // await utils.personalImportAccount(privateKey[accountAddressList[10]],password);
+        await utils.unlockPersonalAccount(accountAddressList[0],password);
 
       //Transfer some ether from coinbase account to newly created accounts!
-      var coinbase = await web3.eth.coinbase;
+      var coinbase = await web3.eth.getCoinbase();
       //var receipt;
-      receipt = await utils.sendMethodTransactionOld(coinbase,accountAddressList[0],"0x00",privateKey[coinbase],web3.toWei(1.0, "ether"),web3);
-      receipt = await utils.sendMethodTransactionOld(coinbase,accountAddressList[1],"0x00",privateKey[coinbase],web3.toWei(1.0, "ether"),web3);
-      receipt = await utils.sendMethodTransactionOld(coinbase,accountAddressList[2],"0x00",privateKey[coinbase],web3.toWei(1.0, "ether"),web3);
+      receipt = await utils.sendUnsignedTransaction(coinbase,accountAddressList[1],web3.utils.toWei("1.0", "ether"),web3);
+      receipt = await utils.sendUnsignedTransaction(coinbase,accountAddressList[2],web3.utils.toWei("1.0", "ether"),web3);
+      receipt = await utils.sendUnsignedTransaction(coinbase,accountAddressList[10],web3.utils.toWei("1.0", "ether"),web3);
+      //receipt = await utils.sendUnsignedTransaction(coinbase,accountAddressList[10],"0x00",privateKey[coinbase],web3.utils.toWei("1.0", "ether"),web3);
+      //receipt = await utils.sendMethodTransactionOld(coinbase,accountAddressList[1],"0x00",privateKey[coinbase],web3.utils.toWei("1.0", "ether"),web3);
+      //receipt = await utils.sendMethodTransactionOld(coinbase,accountAddressList[2],"0x00",privateKey[coinbase],web3.utils.toWei("1.0", "ether"),web3);
     }
       
     //With assumption that accountAddressList[0],accountAddressList[1], accountAddressList[2] are present in etherum 
     //and needs to be unlocked before running the testcases. 
-    await utils.unlockPersonalAccount(accountAddressList[0],password);
-    await utils.unlockPersonalAccount(accountAddressList[1],password);
-    await utils.unlockPersonalAccount(accountAddressList[2],password);
+    // await utils.unlockPersonalAccount(accountAddressList[0],password);
+    // await utils.unlockPersonalAccount(accountAddressList[1],password);
+    // await utils.unlockPersonalAccount(accountAddressList[2],password);
 }
   
 async function test() {
