@@ -2,6 +2,7 @@
 const fs = require('fs');
 const Web3 = require('web3');
 const Utils =  require('./web3util');
+const privateTran =  require('./privatetransactions');
 
 var provider;
 var protocol,host,port,web3;
@@ -83,6 +84,9 @@ var main = async function () {
                 break;
             case "testgreeter":
                 await testGreetingContract();
+                break;
+            case "testprivate":
+                privateTran.deploy();
                 break;
             case "testInvoices":
                 let list = temp[1].split(",");
