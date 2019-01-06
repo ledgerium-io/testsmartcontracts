@@ -92,6 +92,9 @@ var main = async function () {
                 let list = temp[1].split(",");
                 await testInvoicesContract(list[0],list[1]);
                 break;
+            case "testSmartUniversity":
+                await testSmartUniversityContract();
+                break;
             case "deployERC20Mock":
                 await deployERC20MockContract();
                 break;
@@ -410,6 +413,52 @@ async function testInvoicesContract(invoiceID,hashVal) {
     
     let encodedABI = invoice.methods.addInvoice(invoiceID,hashVal).encodeABI();
     var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedAddressInvoice,encodedABI,privateKey[ethAccountToUse],web3,0);
+    console.log("TransactionLog for Invoice Setvalue -", transactionObject.transactionHash);
+
+    result = await invoice.methods.isHashExists(hashVal).call({from : ethAccountToUse});
+    console.log("isHashExists after", result);
+
+    result = await invoice.methods.getInvoiceID(hashVal).call({from : ethAccountToUse});
+    console.log("getInvoiceID after", result);
+}
+
+async function testSmartUniversityContract() {
+    
+    accountAddressList = global.accountAddressList;
+    privateKey = global.privateKey;  
+
+    // Todo: Read ABI from dynamic source.
+    var value = utils.readSolidityContractJSON("./build/contracts/ControllerContract");
+    if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+        return;
+    }
+    
+    var ethAccountToUse = accountAddressList[0];
+    var deployedAddressSmartUniController;
+    if(!usecontractconfigFlag){
+        let constructorParameters = [];
+        //constructorParameters.push("Hi Ledgerium");
+        //value[0] = Contract ABI and value[1] =  Contract Bytecode
+        //var deployedAddressGreeter = "0x0000000000000000000000000000000000002020";
+        let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
+        let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
+        deployedAddressSmartUniController = transactionHash.contractAddress;
+        console.log("SmartUniversity deployedAddress ", deployedAddressSmartUniController);
+
+        utils.writeContractsINConfig("SmartUniversity",deployedAddressSmartUniController);
+    }
+    else{
+        deployedAddressSmartUniController = utils.readContractFromConfigContracts("SmartUniversity");
+    }
+
+    var invoice = new web3.eth.Contract(JSON.parse(value[0]),deployedAddressSmartUniController);
+    global.invoice = invoice;
+    
+    var result = await invoice.methods.isHashExists(hashVal).call({from : ethAccountToUse});
+    console.log("isHashExists after", result);
+    
+    let encodedABI = invoice.methods.addInvoice(invoiceID,hashVal).encodeABI();
+    var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedAddressSmartUniController,encodedABI,privateKey[ethAccountToUse],web3,0);
     console.log("TransactionLog for Invoice Setvalue -", transactionObject.transactionHash);
 
     result = await invoice.methods.isHashExists(hashVal).call({from : ethAccountToUse});
