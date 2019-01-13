@@ -26,7 +26,8 @@ class utils {
     async getContractEncodeABI(abi,bytecode,web3,arg){
         try{
             let contract = new web3.eth.Contract(JSON.parse(abi));
-            return await contract.deploy({ data : bytecode, arguments : arg}).encodeABI();
+            // return await contract.deploy({ data : bytecode, arguments : arg}).encodeABI();
+            return await contract.deploy({ data : bytecode, arguments : []}).encodeABI();
         } catch (error) {
             console.log("Exception in utils.getContractEncodeABI(): " + error);
         } 

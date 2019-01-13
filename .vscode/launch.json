@@ -11,6 +11,18 @@
             "name": "Launch Program",
             "program": "${workspaceFolder}/index.js",
             "args":["hostname=localhost", "port=8545", "readkeyconfig=true", "usecontractconfig=false", "deployERC20Mock"]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Run Testcases",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "args": [
+                "--require",
+                "./setup.js",
+                "--recursive",
+                "--delay",
+            ]
         }
     ]
 }
