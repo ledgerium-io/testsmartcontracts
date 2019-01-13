@@ -422,43 +422,27 @@ async function testInvoicesContract(invoiceID,hashVal) {
     console.log("getInvoiceID after", result);
 }
 
-async function testSmartUniversityContract() {
+async function testControllerContract() {
     
     accountAddressList = global.accountAddressList;
     privateKey = global.privateKey;  
 
     // Todo: Read ABI from dynamic source.
-    var value = utils.readSolidityContractJSON("./build/contracts/ControllerContract");
+    var value = utils.readSolidityContractJSON("./build/contracts/Invoice");
     if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
         return;
     }
-    
     var ethAccountToUse = accountAddressList[0];
-    var deployedAddressSmartUniController;
-    if(!usecontractconfigFlag){
-        let constructorParameters = [];
-        //constructorParameters.push("Hi Ledgerium");
-        //value[0] = Contract ABI and value[1] =  Contract Bytecode
-        //var deployedAddressGreeter = "0x0000000000000000000000000000000000002020";
-        let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
-        let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
-        deployedAddressSmartUniController = transactionHash.contractAddress;
-        console.log("SmartUniversity deployedAddress ", deployedAddressSmartUniController);
-
-        utils.writeContractsINConfig("SmartUniversity",deployedAddressSmartUniController);
-    }
-    else{
-        deployedAddressSmartUniController = utils.readContractFromConfigContracts("SmartUniversity");
-    }
-
-    var invoice = new web3.eth.Contract(JSON.parse(value[0]),deployedAddressSmartUniController);
+    var deployedAddressInvoice = "0x0000000000000000000000000000000000002020";
+    
+    var invoice = new web3.eth.Contract(JSON.parse(value[0]),deployedAddressInvoice);
     global.invoice = invoice;
     
     var result = await invoice.methods.isHashExists(hashVal).call({from : ethAccountToUse});
     console.log("isHashExists after", result);
     
     let encodedABI = invoice.methods.addInvoice(invoiceID,hashVal).encodeABI();
-    var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedAddressSmartUniController,encodedABI,privateKey[ethAccountToUse],web3,0);
+    var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedAddressInvoice,encodedABI,privateKey[ethAccountToUse],web3,0);
     console.log("TransactionLog for Invoice Setvalue -", transactionObject.transactionHash);
 
     result = await invoice.methods.isHashExists(hashVal).call({from : ethAccountToUse});
@@ -466,6 +450,147 @@ async function testSmartUniversityContract() {
 
     result = await invoice.methods.getInvoiceID(hashVal).call({from : ethAccountToUse});
     console.log("getInvoiceID after", result);
+}
+
+async function testSmartUniversityContract() {
+    
+    accountAddressList = global.accountAddressList;
+    privateKey = global.privateKey;
+
+    var ethAccountToUse = accountAddressList[0];
+    var deployedAddressUniversity,deployedAddressInst,deployedAddressCourse,deployedAddressBatch;
+    var deployedAddressCert,deployedAddressStudent,deployedAddressController;
+
+    if(!usecontractconfigFlag){
+        let constructorParameters = [];
+
+        //University Deployment
+        // Todo: Read ABI from dynamic source.
+        var value = utils.readSolidityContractJSON("./build/contracts/University");
+        if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+            return;
+        }
+        constructorParameters.push("RMIT");
+        let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
+        let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
+        deployedAddressUniversity = transactionHash.contractAddress;
+        console.log("University deployedAddress ", deployedAddressUniversity);
+        utils.writeContractsINConfig("University",deployedAddressUniversity);
+
+        
+        //Institute Deployment
+        value = utils.readSolidityContractJSON("./build/contracts/Institute");
+        if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+            return;
+        }
+        constructorParameters = [];
+        constructorParameters.push(deployedAddressUniversity);
+        constructorParameters.push("Inst1");
+        encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
+        transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
+        deployedAddressInst = transactionHash.contractAddress;
+        console.log("Institute deployedAddress ", deployedAddressInst);
+
+        
+        //Course Deployment
+        value = utils.readSolidityContractJSON("./build/contracts/Course");
+        if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+            return;
+        }
+        constructorParameters = [];
+        constructorParameters.push(deployedAddressInst);
+        constructorParameters.push("Course1");
+        encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
+        transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
+        deployedAddressCourse = transactionHash.contractAddress;
+        console.log("Course deployedAddress ", deployedAddressCourse);
+
+
+        //Batch Deployment
+        value = utils.readSolidityContractJSON("./build/contracts/Batch");
+        if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+            return;
+        }
+        constructorParameters = [];
+        constructorParameters.push(deployedAddressCourse);
+        constructorParameters.push("Batch1");
+        encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
+        transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
+        deployedAddressBatch = transactionHash.contractAddress;
+        console.log("Batch deployedAddress ", deployedAddressBatch);
+
+
+        //Certificate Deployment
+        value = utils.readSolidityContractJSON("./build/contracts/Certificate");
+        if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+            return;
+        }
+        constructorParameters = [];
+        constructorParameters.push(deployedAddressBatch);
+        constructorParameters.push("BTech");
+        encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
+        transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
+        deployedAddressCert = transactionHash.contractAddress;
+        console.log("Certificate deployedAddress ", deployedAddressCert);
+
+        
+        //Student Deployment
+        value = utils.readSolidityContractJSON("./build/contracts/Student");
+        if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+            return;
+        }
+        constructorParameters = [];
+        constructorParameters.push("Vitalin Butarik");
+        encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
+        transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
+        deployedAddressStudent = transactionHash.contractAddress;
+        console.log("Student deployedAddress ", deployedAddressStudent);
+
+
+        //ControllerContract Deployment
+        value = utils.readSolidityContractJSON("./build/contracts/ControllerContract");
+        if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+            return;
+        }
+        constructorParameters = [];
+        encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
+        transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
+        deployedAddressController = transactionHash.contractAddress;
+        console.log("ControllerContract deployedAddress ", deployedAddressController);
+
+        utils.writeContractsINConfig("University",deployedAddressUniversity);
+        utils.writeContractsINConfig("Institute",deployedAddressInst);
+        utils.writeContractsINConfig("Course",deployedAddressCourse);
+        utils.writeContractsINConfig("Batch",deployedAddressBatch);
+        utils.writeContractsINConfig("Certificate",deployedAddressCert);
+        utils.writeContractsINConfig("Student",deployedAddressStudent);
+        utils.writeContractsINConfig("ControllerContract",deployedAddressController);
+    }
+    else{
+        deployedAddressUniversity = utils.readContractFromConfigContracts("University");
+        deployedAddressInst = utils.readContractFromConfigContracts("Institute");
+        deployedAddressCourse = utils.readContractFromConfigContracts("Course");
+        deployedAddressBatch = utils.readContractFromConfigContracts("Batch");
+        deployedAddressCert = utils.readContractFromConfigContracts("Certificate");
+        deployedAddressStudent = utils.readContractFromConfigContracts("Student");
+        deployedAddressController = utils.readContractFromConfigContracts("ControllerContract");
+    }
+
+    // var invoice = new web3.eth.Contract(JSON.parse(value[0]),deployedAddressSmartUniController);
+    // global.invoice = invoice;
+    
+    // var result = await invoice.methods.isHashExists(hashVal).call({from : ethAccountToUse});
+    // console.log("isHashExists after", result);
+    
+    // let encodedABI = invoice.methods.addInvoice(invoiceID,hashVal).encodeABI();
+    // var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedAddressSmartUniController,encodedABI,privateKey[ethAccountToUse],web3,0);
+    // console.log("TransactionLog for Invoice Setvalue -", transactionObject.transactionHash);
+
+    // result = await invoice.methods.isHashExists(hashVal).call({from : ethAccountToUse});
+    // console.log("isHashExists after", result);
+
+    // result = await invoice.methods.getInvoiceID(hashVal).call({from : ethAccountToUse});
+    // console.log("getInvoiceID after", result);
 }
 
 async function deployERC20Contract(){

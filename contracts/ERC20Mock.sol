@@ -20,5 +20,4 @@ contract ERC20Mock is ERC20 {
   function burnFrom(address account, uint256 amount) public {
     _burnFrom(account, amount);
   }
-
 }
