@@ -505,7 +505,7 @@ class utils {
         return false;
     }
       
-    async readContractFromConfigContracts(contractName){
+    readContractFromConfigContracts(contractName){
         try{
             var contractFileName = __dirname + "/keystore/" + "contractsconfig.json";
             var keyData = {};
