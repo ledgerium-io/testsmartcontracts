@@ -154,11 +154,11 @@ class utils {
             if(transactionHash.status)
                 return transactionHash;
             else
-                return "";
+                return transactionHash;
         }
         catch (error) {
-            console.log("Error in utils.sendMethodTransaction(): " + error);
-            return "";
+            // console.log("Error in utils.sendMethodTransaction(): " + error);
+            return error;
         }
     }
     

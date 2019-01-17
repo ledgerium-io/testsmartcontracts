@@ -1,9 +1,5 @@
 var chai = require('chai')
 var expect = chai.expect;
-const { assertRevert } = require('../helpers/assertRevert');
-const expectEvent = require('../helpers/expectEvent');
-// const utils = require('../web3util.js');
-const BigNumber = web3.utils.BN;
 
 require('chai')
   .use(require('chai-bignumber')())
@@ -61,7 +57,7 @@ setTimeout(function () {
         const to = recipient;
 
         // describe('when the sender does not have enough balance', function () {
-        //   const amount = 100;
+        //   const amount = 20000000000000001;
 
         //   it('reverts', async function () {
           
@@ -125,21 +121,23 @@ setTimeout(function () {
         });
       });
 
-      // describe('when the recipient is the zero address', function () {
-      //   const to = ZERO_ADDRESS;
-      //   const amount = 100;
+      describe('when the recipient is the zero address', function () {
+        const to = ZERO_ADDRESS;
+        const amount = 100;
 
-      //   it('reverts', async function () {
+        it('reverts', async function () {
           
-      //     // var val = await this.token.transfer(to, 100, { from: owner });
-      //       let encodedABI = await this.token.methods.transfer(to, amount).encodeABI();
-      //       var transactionObject = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
-      //       console.log('Transaction Object ' + JSON.stringify(transactionObject))
-      //       // await assertRevert(transactionObject); // AssertionError: Expected revert not received
-      //       expect(transactionObject.status).should.be.equal({});
+          // var val = await this.token.transfer(to, 100, { from: owner });
+            let encodedABI = await this.token.methods.transfer(to, amount).encodeABI();
+            var transactionObject = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
+            
+            var status = (transactionObject.message).includes('revert')
+            status.should.be.true;
+            
+            // await assertRevert(transactionObject); 
         
-      //     });
-      // });
+          });
+      });
     });
 
     describe('approve', function () {
@@ -226,25 +224,26 @@ setTimeout(function () {
         //     });
           // });
 
-        });
+      //   });
       });
 
-    //   //Need to work
-    //   describe('when the spender is the zero address', function () {
-    //     const amount = 100;
-    //     const spender = ZERO_ADDRESS;
+      describe('when the spender is the zero address', function () {
+        const amount = 100;
+        const spender = ZERO_ADDRESS;
 
-    //     it('reverts', async function () {
+        it('reverts', async function () {
 
-    //       // await assertRevert(this.token.approve(spender, amount, { from: owner }));
-    //       var encodedABI = (await this.token.methods.approve(spender, amount)).encodeABI();
-    //       var transactionObject  = utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
+          // await assertRevert(this.token.approve(spender, amount, { from: owner }));
+          var encodedABI = (await this.token.methods.approve(spender, amount)).encodeABI();
+          var transactionObject  = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
           
-    //       assertRevert(transactionObject)
+          // assertRevert(transactionObject)
+          var status = (transactionObject.message).includes('revert')
+          status.should.be.true;
 
-    //     });
-    //   });
-    // });
+        });
+      });
+    });
 
     describe('transfer from', function () {
       const spender = recipient;
@@ -337,28 +336,30 @@ setTimeout(function () {
     //       });
         });
 
-    //     describe('when the spender does not have enough approved balance', function () {
-    //       beforeEach(async function () {
+        describe('when the spender does not have enough approved balance', function () {
+          beforeEach(async function () {
 
-    //         // await this.token.approve(spender, 99, { from: owner });
-    //         var encodedABI = (await this.token.methods.approve(spender, 99)).encodeABI();
-    //         var transactionObject  = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
+            // await this.token.approve(spender, 99, { from: owner });
+            var encodedABI = (await this.token.methods.approve(spender, 99)).encodeABI();
+            var transactionObject  = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
 
-    //       });
+          });
 
-    //       describe('when the owner has enough balance', function () {
-    //         const amount = 100;
+          describe('when the owner has enough balance', function () {
+            const amount = 100;
 
-    //         it('reverts', async function () {
+            it('reverts', async function () {
               
-    //           // await assertRevert(this.token.transferFrom(owner, to, amount, { from: spender }));
-    //           var encodedABI = (await this.token.methods.transferFrom(owner, to , amount)).encodeABI();
-    //           var transactionObject  = await utils.sendMethodTransaction(spender,deployedLgumTokenAddress,encodedABI,privateKey[spender],web3,0);
+              // await assertRevert(this.token.transferFrom(owner, to, amount, { from: spender }));
+              var encodedABI = (await this.token.methods.transferFrom(owner, to , amount)).encodeABI();
+              var transactionObject  = await utils.sendMethodTransaction(spender,deployedLgumTokenAddress,encodedABI,privateKey[spender],web3,0);
 
-    //           assertRevert(transactionObject);
+              // assertRevert(transactionObject);
+              var status = (transactionObject.message).includes('revert')
+              status.should.be.true;
             
-    //         });
-    //       });
+            });
+          });
 
     //       describe('when the owner does not have enough balance', function () {
     //         const amount = 101;
@@ -376,31 +377,31 @@ setTimeout(function () {
         });
       });
 
-    //   describe('when the recipient is the zero address', function () {
-    //     const amount = 100;
-    //     const to = ZERO_ADDRESS;
+      describe('when the recipient is the zero address', function () {
+        const amount = 100;
+        const to = ZERO_ADDRESS;
 
-    //     beforeEach(async function () {
+        beforeEach(async function () {
 
-    //       // await this.token.approve(spender, amount, { from: owner });
-    //       var encodedABI = (await this.token.methods.approve(spender, amount)).encodeABI();
-    //       var transactionObject  = utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
+          // await this.token.approve(spender, amount, { from: owner });
+          var encodedABI = await this.token.methods.approve(spender, amount).encodeABI();
+          var transactionObject  = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
           
-    //       assertRevert(transactionObject);
-        
-    //     });
+        });
 
-    //     it('reverts', async function () {
+        it('reverts', async function () {
 
-    //       // await assertRevert(this.token.transferFrom(owner, to, amount, { from: spender }));
-    //       var encodedABI = (await this.token.methods.transferFrom(owner, to , amount)).encodeABI();
-    //       var transactionObject  = utils.sendMethodTransaction(spender,deployedLgumTokenAddress,encodedABI,privateKey[spender],web3,0);
+          // await assertRevert(this.token.transferFrom(owner, to, amount, { from: spender }));
+          var encodedABI = await this.token.methods.transferFrom(owner, to , amount).encodeABI();
+          var transactionObject  = await utils.sendMethodTransaction(spender,deployedLgumTokenAddress,encodedABI,privateKey[spender],web3,0);
           
-    //       assertRevert(transactionObject);
+          // assertRevert(transactionObject);
+          var status = (transactionObject.message).includes('revert')
+          status.should.be.true;
         
-    //     });
-    //   });
-    // });
+        });
+      });
+    });
 
     describe('decrease allowance', function () {
       describe('when the spender is not the zero address', function () {
@@ -413,9 +414,11 @@ setTimeout(function () {
           //     // await assertRevert(this.token.decreaseAllowance(spender, amount, { from: owner }));
 
           //     var encodedABI = (await this.token.methods.decreaseAllowance(spender, amount)).encodeABI();
-          //     var transactionObject  = utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
+          //     var transactionObject  = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
 
-          //     assertRevert(transactionObject)
+          //     // assertRevert(transactionObject)
+          //     var status = (transactionObject.message).includes('revert')
+          //     status.should.be.true;
 
           //   });
           // });
@@ -473,16 +476,16 @@ setTimeout(function () {
 
             });
 
-            // it('reverts when more than the full allowance is removed', async function () {
+            it('reverts when more than the full allowance is removed', async function () {
 
-            //   // await assertRevert(this.token.decreaseAllowance(spender, approvedAmount + 1, { from: owner }));
-            //   var encodedABI = (await this.token.methods.decreaseAllowance(spender, approvedAmount + 1)).encodeABI();
-            //   var transactionObject  = utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
+              // await assertRevert(this.token.decreaseAllowance(spender, approvedAmount + 1, { from: owner }));
+              var encodedABI = (await this.token.methods.decreaseAllowance(spender, approvedAmount + 1)).encodeABI();
+              var transactionObject  = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
               
-            //   // console.log('Transaction log ' + JSON.stringify(transactionObject))
-              
-            //   assertRevert(transactionObject) //Expected revert not received
-            // });
+              // assertRevert(transactionObject) 
+              var status = (transactionObject.message).includes('revert')
+              status.should.be.true;
+            });
           });
         }
 
@@ -499,22 +502,22 @@ setTimeout(function () {
         });
       });
 
-      // describe('when the spender is the zero address', function () {
-      //   const amount = 100;
-      //   const spender = ZERO_ADDRESS;
+      describe('when the spender is the zero address', function () {
+        const amount = 100;
+        const spender = ZERO_ADDRESS;
 
-      //   it('reverts', async function () {
+        it('reverts', async function () {
 
-      //     // await assertRevert(this.token.decreaseAllowance(spender, amount, { from: owner }));
-      //     var encodedABI = (await this.token.methods.decreaseAllowance(spender, amount)).encodeABI();
-      //     var transactionObject  = utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
+          // await assertRevert(this.token.decreaseAllowance(spender, amount, { from: owner }));
+          var encodedABI = await this.token.methods.decreaseAllowance(spender, amount).encodeABI();
+          var transactionObject  = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
           
-      //     // console.log('Transaction log ' + JSON.stringify(transactionObject))
-            
-      //     assertRevert(transactionObject) //Expected revert not received
+          // assertRevert(transactionObject) 
+          var status = (transactionObject.message).includes('revert')
+          status.should.be.true;
 
-      //   });
-      // });
+        });
+      });
     });
 
     describe('increase allowance', function () {
@@ -536,7 +539,8 @@ setTimeout(function () {
 
             (returnValues['0'].toLowerCase()).should.be.equal(owner);
             (returnValues['1'].toLowerCase()).should.be.equal(spender);
-            (returnValues['2']).should.be.bignumber.equal(amount);
+            (returnValues['2']).should.be.bignumber.equal(201);
+            // (returnValues['2']).should.be.bignumber.equal(amount);
             // expectEvent.inLogs(logs, 'Approval', {
             //   owner: owner,
             //   spender: spender,
@@ -551,7 +555,7 @@ setTimeout(function () {
               var encodedABI = (await this.token.methods.increaseAllowance(spender, amount)).encodeABI();
               var transactionObject  = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);       
 
-              (await this.token.methods.allowance(owner, spender).call()).should.be.bignumber.equal(amount + amount); //Calling increaseAllowance in previous function as well
+              (await this.token.methods.allowance(owner, spender).call()).should.be.bignumber.equal(301); //Calling increaseAllowance in previous function as well
 
             });
           });
@@ -635,19 +639,21 @@ setTimeout(function () {
         // });
       });
 
-      // describe('when the spender is the zero address', function () {
-      //   const spender = ZERO_ADDRESS;
+      describe('when the spender is the zero address', function () {
+        const spender = ZERO_ADDRESS;
 
-      //   it('reverts', async function () {
+        it('reverts', async function () {
 
-      //     // await assertRevert(this.token.increaseAllowance(spender, amount, { from: owner }));
-      //     var encodedABI = (await this.token.methods.increaseAllowance(spender, amount)).encodeABI();
-      //     var transactionObject  = utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
+          // await assertRevert(this.token.increaseAllowance(spender, amount, { from: owner }));
+          var encodedABI = await this.token.methods.increaseAllowance(spender, amount).encodeABI();
+          var transactionObject  = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
 
-      //     assertRevert(transactionObject);
+          // assertRevert(transactionObject);
+          var status = (transactionObject.message).includes('revert')
+          status.should.be.true;
 
-      //   });
-      // });
+        });
+      });
     });
 
     // describe('_mint', function () {
@@ -718,15 +724,17 @@ setTimeout(function () {
       // it('rejects a null account', async function () {
 
       //   // var receipt = await this.token.burn(ZERO_ADDRESS, 1);
-      //   var encodedABI = await this.token.methods.burn(ZERO_ADDRESS, 1).encodeABI();
-      //   var transactionObject = utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
+      //   var encodedABI = await this.token.methods.burn(1).encodeABI();
+      //   var transactionObject = await utils.sendMethodTransaction(ZERO_ADDRESS,deployedLgumTokenAddress,encodedABI,privateKey[ZERO_ADDRESS],web3,0);
 
-      //   // console.log("_burn:rejects a null account:receipt", receipt);
-      //   assertRevert(transactionObject);
+      //   // assertRevert(transactionObject);
+      //   var status = (transactionObject.message).includes('revert')
+      //   status.should.be.true;
       
       // });
 
       describe('for a non null account', function () {
+
         // it('rejects burning more than balance', async function () {
         
         //   // var receipt = await this.token.burn(owner, initialSupply.plus(1));
@@ -773,8 +781,8 @@ setTimeout(function () {
               // var bal = await this.token.balanceOf(owner)
               var bal = await this.token.methods.balanceOf(owner).call();
             
-              console.trace();
-              console.log("_burn decrements owner balance:receipt", bal);
+              // console.trace();
+              // console.log("_burn decrements owner balance:receipt", bal);
             
               // bal.should.be.bignumber.equal(expectedBalance);
               bal.should.be.bignumber.equal(19999999999999300);
@@ -803,157 +811,161 @@ setTimeout(function () {
       });
     });
 
-      describe('_burnFrom', function () {
-        const initialSupply = 100;
-        const allowance = 70;
-        const spender = anotherAccount;
-        var totalValue = 20000000000000000;
+    describe('_burnFrom', function () {
+      const initialSupply = 100;
+      const allowance = 70;
+      const spender = anotherAccount;
+      var totalValue = 20000000000000000;
 
-        beforeEach('approving', async function () {
+      beforeEach('approving', async function () {
+      
+        // var ret = await this.token.approve(spender, allowance, { from: owner });
+        var encodedABI = await this.token.methods.approve(spender, allowance).encodeABI();
+        var transactionObject = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
+      
+        // console.log("_burnFrom:beforeEach",ret);
+      
+      });
+
+      it('rejects a null account', async function () {
+        
+        // var ret = await this.token.approve(spender, allowance, { from: owner });
+        var encodedABI = await this.token.methods.approve(spender, allowance).encodeABI();
+        var transactionObject = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
+        
+        // var receipt = await this.token.burnFrom(ZERO_ADDRESS, 1);
+        var encodedABI = await this.token.methods.burnFrom(ZERO_ADDRESS, 1).encodeABI();
+        var transactionObject = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
+        
+        // console.log("_burnFrom rejects a null account:receipt", receipt);
+        // assertRevert(transactionObject);
+        var status = (transactionObject.message).includes('revert')
+        status.should.be.true;
+        
+      
+      });
+
+      describe('for a non null account', function () {
+        it('rejects burning more than allowance', async function () {
+        
+          // var ret = await this.token.approve(spender, allowance, { from: owner });
+          var encodedABI = await this.token.methods.approve(spender, allowance).encodeABI();
+          var transactionObject = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
+
+          // var receipt = await this.token.burnFrom(owner, allowance.plus(1));
+          var encodedABI = await this.token.methods.burnFrom(owner, allowance + 1).encodeABI();
+          var transactionObject = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
+        
+          // console.log("_burnFrom :for a non null account: rejects burning more than allowance:receipt", receipt);
+          // assertRevert(receipt);
+          var status = (transactionObject.message).includes('revert')
+          status.should.be.true;
+        });
+
+        it('rejects burning more than balance', async function () {
         
           // var ret = await this.token.approve(spender, allowance, { from: owner });
           var encodedABI = await this.token.methods.approve(spender, allowance).encodeABI();
           var transactionObject = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
         
-          // console.log("_burnFrom:beforeEach",ret);
+          console.log("_burnFrom:beforeEach", transactionObject.transactionHash);
+        
+          // var receipt = await this.token.burnFrom(owner, initialSupply.plus(1));
+          var encodedABI = await this.token.methods.burnFrom(owner, initialSupply + 1 ).encodeABI();
+          var transactionObject = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
+        
+          // console.log("_burnFrom :for a non null account: rejects burning more than balance:receipt", receipt);
+          // assertRevert(receipt);
+          var status = (transactionObject.message).includes('revert')
+          status.should.be.true;
         
         });
 
-        // it('rejects a null account', async function () {
-          
-        //   // var ret = await this.token.approve(spender, allowance, { from: owner });
-        //   var ret = await this.token.methods.approve(spender, allowance).encodeABI();
-        //   var transactionObject = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
-          
-        //   console.log("_burnFrom:beforeEach", transactionObject.transactionHash);
-        //   // var receipt = await this.token.burnFrom(ZERO_ADDRESS, 1);
-        //   var receipt = await this.token.methods.burnFrom(ZERO_ADDRESS, 1).encodeABI();
-        //   var transactionObject = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
-          
-        //   // console.log("_burnFrom rejects a null account:receipt", receipt);
-        //   assertRevert(transactionObject);
-        
-        // });
-
-        describe('for a non null account', function () {
-          // it('rejects burning more than allowance', async function () {
-          
-          //   // var ret = await this.token.approve(spender, allowance, { from: owner });
-          //   var ret = await this.token.methods.approve(spender, allowance).encodeABI();
-          //   var transactionObject = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
-
-          //   console.log("_burnFrom:beforeEach", transactionObject.transactionHash);
-          
-          //   // var receipt = await this.token.burnFrom(owner, allowance.plus(1));
-          //   var receipt = await this.token.methods.burnFrom(owner, allowance.plus(1)).encodeABI();
-          //   var transactionObject = utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
-          
-          //   // console.log("_burnFrom :for a non null account: rejects burning more than allowance:receipt", receipt);
-          //   assertRevert(receipt);
-          // });
-
-          // it('rejects burning more than balance', async function () {
-          
-          //   // var ret = await this.token.approve(spender, allowance, { from: owner });
-          //   var ret = await this.token.methods.approve(spender, allowance).encodeABI();
-          //   var transactionObject = await utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
-          
-          //   console.log("_burnFrom:beforeEach", transactionObject.transactionHash);
-          
-          //   // var receipt = await this.token.burnFrom(owner, initialSupply.plus(1));
-          //   var receipt = await this.token.methods.burnFrom(owner, initialSupply.plus(1)).encodeABI();
-          //   var transactionObject = utils.sendMethodTransaction(owner,deployedLgumTokenAddress,encodedABI,privateKey[owner],web3,0);
-          
-          //   // console.log("_burnFrom :for a non null account: rejects burning more than balance:receipt", receipt);
-          //   assertRevert(receipt);
-          
-          // });
-
-          const describeBurnFrom = function (description, amount) {
-            describe(description, function () {
-              beforeEach('burning', async function () {
+        const describeBurnFrom = function (description, amount) {
+          describe(description, function () {
+            beforeEach('burning', async function () {
+            
+              // const { logs } = await this.token.burnFrom(owner, amount, { from: spender });
+              var encodedABI = await this.token.methods.burnFrom(owner, amount).encodeABI();
+              var transactionObject = await utils.sendMethodTransaction(spender,deployedLgumTokenAddress,encodedABI,privateKey[spender],web3,0);
               
-                // const { logs } = await this.token.burnFrom(owner, amount, { from: spender });
-                var encodedABI = await this.token.methods.burnFrom(owner, amount).encodeABI();
-                var transactionObject = await utils.sendMethodTransaction(spender,deployedLgumTokenAddress,encodedABI,privateKey[spender],web3,0);
-                
-                expect(transactionObject.status).to.be.true;
-                totalValue = totalValue - amount;
-                
-                // var logs = await this.token.getPastEvents('Transfer')
-                // this.logs = logs;
+              expect(transactionObject.status).to.be.true;
+              totalValue = totalValue - amount;
               
-              });
-
-              it('decrements totalSupply', async function () {
-              
-                // const expectedSupply = initialSupply.minus(amount);
-                const expectedSupply = totalValue;
-              
-                // var bal = await this.token.totalSupply();
-                var bal = await this.token.methods.totalSupply().call();
-              
-                console.log("_burnFrom :describeBurnFrom:decrements totalSupply:bal", bal);
-                // bal.should.be.equal(expectedSupply.toString());
-                bal.should.be.equal('19999999999999630');
-              
-              });
-
-              it('decrements owner balance', async function () {
-              
-                // const expectedBalance = initialSupply.minus(amount);
-                const expectedBalance = totalValue;
-              
-                // var bal = await this.token.balanceOf(owner);
-                var bal = await this.token.methods.balanceOf(owner).call();
-              
-                console.log("_burnFrom :describeBurnFrom:decrements owner balance:bal", bal);
-                // bal.should.be.equal(expectedBalance.toString());
-                bal.should.be.equal('19999999999999060');
-                
-              });
-
-              it('decrements spender allowance', async function () {
-              
-                //const expectedAllowance = allowance.minus(amount);
-                const expectedAllowance = allowance - amount;
-              
-                // var allo = await this.token.allowance(owner, spender);
-                var allo = await this.token.methods.allowance(owner, spender).call();
-              
-                console.log("_burnFrom :describeBurnFrom:decrements owner balance:allowance", allo);
-                allo.should.be.bignumber.equal(expectedAllowance);
-              
-              });
-
-              it('emits Transfer event', async function () {
-              
-                var logs = await this.token.getPastEvents('Transfer');
-                var returnValues = logs[0].returnValues;              
-
-                (returnValues['2']).should.be.bignumber.equal(amount);
-
-                // const event = expectEvent.inLogs(this.logs, 'Transfer', {
-                //   from: owner,
-                //   to: ZERO_ADDRESS,
-                // });
-                // event.args.value.should.be.bignumber.equal(amount);
-              
-              });
+              // var logs = await this.token.getPastEvents('Transfer')
+              // this.logs = logs;
+            
             });
-          };
 
-          describeBurnFrom('for entire allowance', allowance);
-          // describeBurnFrom('for less amount than allowance', allowance.sub(1));
-        });
-      });
+            it('decrements totalSupply', async function () {
+            
+              // const expectedSupply = initialSupply.minus(amount);
+              const expectedSupply = totalValue;
+            
+              // var bal = await this.token.totalSupply();
+              var bal = await this.token.methods.totalSupply().call();
+            
+              console.log("_burnFrom :describeBurnFrom:decrements totalSupply:bal", bal);
+              // bal.should.be.equal(expectedSupply.toString());
+              bal.should.be.equal('19999999999999630');
+            
+            });
 
-      after(async function () {
-        var password = "password";
-        await utils.lockPersonalAccount(accountAddressList[0],password);
-        await utils.lockPersonalAccount(accountAddressList[1],password);
-        await utils.lockPersonalAccount(accountAddressList[2],password);
+            it('decrements owner balance', async function () {
+            
+              // const expectedBalance = initialSupply.minus(amount);
+              const expectedBalance = totalValue;
+            
+              // var bal = await this.token.balanceOf(owner);
+              var bal = await this.token.methods.balanceOf(owner).call();
+            
+              console.log("_burnFrom :describeBurnFrom:decrements owner balance:bal", bal);
+              // bal.should.be.equal(expectedBalance.toString());
+              bal.should.be.equal('19999999999999060');
+              
+            });
+
+            it('decrements spender allowance', async function () {
+            
+              //const expectedAllowance = allowance.minus(amount);
+              const expectedAllowance = allowance - amount;
+            
+              // var allo = await this.token.allowance(owner, spender);
+              var allo = await this.token.methods.allowance(owner, spender).call();
+            
+              console.log("_burnFrom :describeBurnFrom:decrements owner balance:allowance", allo);
+              allo.should.be.bignumber.equal(expectedAllowance);
+            
+            });
+
+            it('emits Transfer event', async function () {
+            
+              var logs = await this.token.getPastEvents('Transfer');
+              var returnValues = logs[0].returnValues;              
+
+              (returnValues['2']).should.be.bignumber.equal(amount);
+
+              // const event = expectEvent.inLogs(this.logs, 'Transfer', {
+              //   from: owner,
+              //   to: ZERO_ADDRESS,
+              // });
+              // event.args.value.should.be.bignumber.equal(amount);
+            
+            });
+          });
+        };
+
+        describeBurnFrom('for entire allowance', allowance);
+        // describeBurnFrom('for less amount than allowance', allowance.sub(1));
       });
+    });
+
+    after(async function () {
+      var password = "password";
+      await utils.lockPersonalAccount(accountAddressList[0],password);
+      await utils.lockPersonalAccount(accountAddressList[1],password);
+      await utils.lockPersonalAccount(accountAddressList[2],password);
+    });
   });
 
   run();
