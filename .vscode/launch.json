@@ -11,11 +11,11 @@
             "name": "Launch Program",
             "program": "${workspaceFolder}/index.js",
             //"args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "testInvoices=0x4321,790afdeb16ae5c22453f8eeee25038c314f09d64fc51b8e21a5a82225e54fde6"]
-            "args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "testLedgeriumToken"]
+            //"args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "testLedgeriumToken"]
             //"args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "testPersonalImportAccount"]
             //"args":["protocol=http", "hostname=125.254.27.14", "port=8545", "readkeyconfig=true", "testgreeter"]
             //"args":["protocol=http", "hostname=testnet.ledgerium.net", "port=8545", "readkeyconfig=true", "testprivate"]
-            //"args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "testprivate"]
+            "args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "testprivate"]
         }
     ]
 }
