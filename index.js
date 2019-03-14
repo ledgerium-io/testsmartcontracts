@@ -104,6 +104,9 @@ var main = async function () {
             case "testPersonalImportAccount":
                 await testPersonalImportAccount();
                 break;
+            case "testNetworkManagerContract":
+                await testNetworkManagerContract();
+                break;
             default:
                 //throw "command should be of form :\n node deploy.js host=<host> file=<file> contracts=<c1>,<c2> dir=<dir>";
                 break;
@@ -599,11 +602,63 @@ async function testPersonalImportAccount() {
     // await utils.unlockPersonalAccount(accountAddressList[1],password);
     // await utils.unlockPersonalAccount(accountAddressList[2],password);
 }
-  
-async function test() {
-    await utils.readAccountsAndKeys();
-    await utils.readContractsFromConfig();
-    await deployERC20MockContract();
-}
 
-//test();
+async function testNetworkManagerContract() {
+
+    accountAddressList = global.accountAddressList;
+    privateKey = global.privateKey;  
+  
+    var ethereumAccountsList = await web3.eth.getAccounts();
+    console.log("No of Ethereum accounts on the node ",ethereumAccountsList.length);
+    var ethAccountToUse = accountAddressList[0];
+
+    // Todo: Read ABI from dynamic source.
+    var filename = __dirname + "/build/contracts/NetworkManagerContract";
+    var value = utils.readSolidityContractJSON(filename);
+    if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+        return;
+    }
+
+    var networkManagerAddress = "0x0000000000000000000000000000000000002023";
+    var nmContract = new web3.eth.Contract(JSON.parse(value[0]),networkManagerAddress);
+    var index = 0;
+    let encodedABI = nmContract.methods.registerNode("validator-"+index,
+                                                    "mothernode",
+                                                    global.accountAddressList[index],
+                                                    "ae0f4add91eccaa384f8dcd00ae20e9e1cc460d66bdbb3236866b5c9e864830084aed077718351a968c9d87766ef3bc26301bdec836d295a6ffbedb9dab5503c",
+                                                    "172.19.240.10","ID"+index++).encodeABI();
+    let transactionObject = await utils.sendMethodTransaction(ethAccountToUse,networkManagerAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
+    console.log("TransactionLog for Network Manager registerNode -", transactionObject.transactionHash);
+
+    encodedABI = nmContract.methods.registerNode("validator-"+index,
+                                                    "mothernode",
+                                                    global.accountAddressList[index],
+                                                    "db5371dfe7fd0822a73355b907648f35ba1039c0f111ba3591c6e6d9ecf61c1f29bed29a36231138ab5c6c15ed928a0ee19bd7aa2ea03e35744c839b28376977",
+                                                    "172.19.240.11","ID"+index++).encodeABI();
+    transactionObject = await utils.sendMethodTransaction(ethAccountToUse,networkManagerAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
+    console.log("TransactionLog for Network Manager registerNode -", transactionObject.transactionHash);
+
+    encodedABI = nmContract.methods.registerNode("validator-"+index,
+                                                    "mothernode",
+                                                    global.accountAddressList[index],
+                                                    "a25a2ebaf83fb0e687187ea8735753934f1f87e8c4259d2da909ec9e89dc59215c2ab6e05b8c97b496a651a5373c1c6a49a4920b722a180af4a1be8184b56f3b",
+                                                    "172.19.240.12","ID"+index++).encodeABI();
+    transactionObject = await utils.sendMethodTransaction(ethAccountToUse,networkManagerAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
+    console.log("TransactionLog for Network Manager registerNode -", transactionObject.transactionHash);
+
+    encodedABI = nmContract.methods.registerNode("validator-"+index,
+                                                    "mothernode",
+                                                    global.accountAddressList[index],
+                                                    "66c4b0731768a92297e1c93126ed3a8abba0b6d20ce6c3ad1b05ca44fce8a73bda61a75076753433846796bbcf66de998ba2e56f9a3cadc361c4628b381e057e",
+                                                    "172.19.240.13","ID"+index++).encodeABI();
+    transactionObject = await utils.sendMethodTransaction(ethAccountToUse,networkManagerAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
+    console.log("TransactionLog for Network Manager registerNode -", transactionObject.transactionHash);
+  
+    var noOfNodes = await nmContract.methods.getNodesCounter().call();
+    for(var nodeIndex = 0; nodeIndex < noOfNodes; nodeIndex++) {
+        let result = await nmContract.methods.getNodeDetails(nodeIndex).call();
+        console.log("details of", nodeIndex);
+        console.log("ID ", result.i,"\nNode Name ", result.n, "\npublic key ", result.p, "\nrole ", result.r, "\nIP ", result.ip, "\nEnode ", result.e);
+    }
+    return;
+}

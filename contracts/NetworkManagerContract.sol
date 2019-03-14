@@ -18,7 +18,10 @@ contract NetworkManagerContract {
     event print(string nodeName, string role,string publickey, string enode, string ip, string id);
 
     function registerNode(string memory n, string memory r, string memory p,string memory e, string memory ip, string memory id) public {
-
+        //if(nodes[e].id != "")
+        bytes memory tempEmptyStringTest = bytes(nodes[e].id);
+        if (tempEmptyStringTest.length == 0)
+            return;
         nodes[e].publickey = p;
         nodes[e].nodeName = n;
         nodes[e].role = r;

@@ -14,8 +14,8 @@
             //"args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "testLedgeriumToken"]
             //"args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "testPersonalImportAccount"]
             //"args":["protocol=http", "hostname=125.254.27.14", "port=8545", "readkeyconfig=true", "testgreeter"]
-            //"args":["protocol=http", "hostname=testnet.ledgerium.net", "port=8545", "readkeyconfig=true", "testprivate"]
-            "args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "testprivate"]
+            "args":["protocol=http", "hostname=testnet.ledgerium.net", "port=8545", "readkeyconfig=true", "testprivate"]
+            //"args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "testNetworkManagerContract"]
         }
     ]
 }
