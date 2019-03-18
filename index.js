@@ -655,7 +655,8 @@ async function testNetworkManagerContract(peerNodesfileName) {
     console.log("No of Nodes -", noOfNodes);
     for(let nodeIndex = 0; nodeIndex < noOfNodes; nodeIndex++) {
         let result = await nmContract.methods.getNodeDetails(nodeIndex).call();
-        console.log("HostName ", result.nodeName,"\nRole ", result.role, "\nIP Address ", result.ipAddress, "\nPort ", result.port, "\nPublic Key ", result.publicKey, "\nEnode ", result.enode);
+        console.log("Details of peer index-", nodeIndex);
+        console.log("HostName ", result.hostName,"\nRole ", result.role, "\nIP Address ", result.ipAddress, "\nPort ", result.port, "\nPublic Key ", result.publicKey, "\nEnode ", result.enode);
     }
     return;
 }

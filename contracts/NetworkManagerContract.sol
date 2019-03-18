@@ -12,7 +12,7 @@ contract NetworkManagerContract {
   
     struct NodeDetails {  
         string nodeId;
-        string nodeName;
+        string hostName;
         string role; 
         string ipAddress;
         string port;
@@ -25,7 +25,7 @@ contract NetworkManagerContract {
     string[] enodeList;
     
     //List of events
-    event print(string nodeId, string nodeName, string role, string ipAddress, string port, string publicKey, string enode);
+    event print(string nodeId, string hostName, string role, string ipAddress, string port, string publicKey, string enode);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     /**
@@ -91,7 +91,7 @@ contract NetworkManagerContract {
     * @dev Function to register/add new peer node. It checks validity of msg.sender with isAdmin modifier
     * msg.sender will be made owner and any subsequent update node should be called by the smae admin
 	* @param _nodeId nodeID of the added node
-    * @param _nodeName hostName of the added node
+    * @param _hostName hostName of the added node
     * @param _role role of the added node, useful at the governance application level
     * @param _ipAddress ipAddress of the added node
     * @param _port Port of the added node
@@ -101,7 +101,7 @@ contract NetworkManagerContract {
     */
 	function registerNode (
         string memory _nodeId,
-        string memory _nodeName, 
+        string memory _hostName, 
         string memory _role, 
         string memory _ipAddress, 
         string memory _port, 
@@ -113,14 +113,14 @@ contract NetworkManagerContract {
         // if (tempEmptyStringTest.length == 0)
         //     return false;
         nodes[_enode].nodeId = _nodeId;
-        nodes[_enode].nodeName = _nodeName;
+        nodes[_enode].hostName = _hostName;
         nodes[_enode].role = _role;
         nodes[_enode].ipAddress = _ipAddress;
         nodes[_enode].port = _port;
         nodes[_enode].publicKey = _publicKey;
         enodeList.push(_enode);
 
-        emit print(_nodeId, _nodeName, _role, _ipAddress, _port, _publicKey, _enode);
+        emit print(_nodeId, _hostName, _role, _ipAddress, _port, _publicKey, _enode);
         return true;
     }
 
@@ -129,7 +129,7 @@ contract NetworkManagerContract {
     * msg.sender address should be one of the original owner
     * enode and public key should not be changed in the Ledgerium node management context 
 	* @param _nodeId nodeID of the added node
-    * @param _nodeName hostName of the added node
+    * @param _hostName hostName of the added node
     * @param _role role of the added node, useful at the governance application level
     * @param _ipAddress ipAddress of the added node
     * @param _port Port of the added node
@@ -139,7 +139,7 @@ contract NetworkManagerContract {
     */
 	function updateNode (
         string memory _nodeId,
-        string memory _nodeName, 
+        string memory _hostName, 
         string memory _role, 
         string memory _ipAddress, 
         string memory _port, 
@@ -151,11 +151,11 @@ contract NetworkManagerContract {
         // if (tempEmptyStringTest.length == 0)
         //     return false;
         nodes[_enode].nodeId = _nodeId;
-        nodes[_enode].nodeName = _nodeName;
+        nodes[_enode].hostName = _hostName;
         nodes[_enode].role = _role;
         nodes[_enode].ipAddress = _ipAddress;
         nodes[_enode].port = _port;
-        emit print(_nodeId, _nodeName, _role, _ipAddress, _port, _publicKey, _enode);
+        emit print(_nodeId, _hostName, _role, _ipAddress, _port, _publicKey, _enode);
         return true;
     }
    
@@ -164,7 +164,7 @@ contract NetworkManagerContract {
     * msg.sender address should be one of the active admin
     * not returning the ID of the node as it will be static
 	* @param _index of the node from the nodelist
-    * @return nodeName of the peer node
+    * @return hostName of the peer node
 	* @return role of the peer node
 	* @return ipAddress of the peer node
 	* @return port of the peer node
@@ -173,7 +173,7 @@ contract NetworkManagerContract {
     */
     function getNodeDetails(uint16 _index) public isInitalised view returns (
                     //string memory nodeId,
-                    string memory nodeName, 
+                    string memory hostName, 
                     string memory role, 
                     string memory ipAddress, 
                     string memory port, 
@@ -186,7 +186,7 @@ contract NetworkManagerContract {
             return ("","","","","","");
         return (
             //nodeInfo.nodeId,
-            nodeInfo.nodeName,
+            nodeInfo.hostName,
             nodeInfo.role,
             nodeInfo.ipAddress,
             nodeInfo.port,
