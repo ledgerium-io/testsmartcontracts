@@ -127,7 +127,7 @@ class utils {
             console.log("gasPrice ",web3.utils.toHex(gasPrice)); 
 
             var balance = await web3.eth.getBalance(fromAccountAddress);
-            console.log("FromAccount", fromAccountAddress, "has balance of", web3.utils.fromWei(balance, 'ether'), "ether");
+            console.log("FromAccount", fromAccountAddress, "has balance of", web3.utils.fromWei(balance, 'xlg'), "XLG");
             
             let nonceToUse = await web3.eth.getTransactionCount(fromAccountAddress, 'pending');
             console.log("nonceToUse ",nonceToUse);

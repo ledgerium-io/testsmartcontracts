@@ -104,6 +104,10 @@ var main = async function () {
             case "testPersonalImportAccount":
                 await testPersonalImportAccount();
                 break;
+            case "testNetworkManagerContract":
+                let peerNodesfileName = temp[1];
+                await testNetworkManagerContract(peerNodesfileName);
+                break;
             default:
                 //throw "command should be of form :\n node deploy.js host=<host> file=<file> contracts=<c1>,<c2> dir=<dir>";
                 break;
@@ -599,11 +603,60 @@ async function testPersonalImportAccount() {
     // await utils.unlockPersonalAccount(accountAddressList[1],password);
     // await utils.unlockPersonalAccount(accountAddressList[2],password);
 }
-  
-async function test() {
-    await utils.readAccountsAndKeys();
-    await utils.readContractsFromConfig();
-    await deployERC20MockContract();
-}
 
-//test();
+async function testNetworkManagerContract(peerNodesfileName) {
+
+    accountAddressList = global.accountAddressList;
+    privateKey = global.privateKey;  
+  
+    var ethereumAccountsList = await web3.eth.getAccounts();
+    console.log("No of Ethereum accounts on the node ",ethereumAccountsList.length);
+    var ethAccountToUse = accountAddressList[0];
+
+    // Todo: Read ABI from dynamic source.
+    var filename = __dirname + "/build/contracts/NetworkManagerContract";
+    var value = utils.readSolidityContractJSON(filename);
+    if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+        return;
+    }
+
+    let constructorParameters = [];
+    let encodedABIdeployedContract = await utils.getContractEncodeABI(value[0], value[1], web3, constructorParameters);
+    let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABIdeployedContract,privateKey[ethAccountToUse],web3,0);
+    var networkManagerAddress = transactionHash.contractAddress;
+    //var networkManagerAddress = "0x0000000000000000000000000000000000002023";
+    console.log("networkManagerAddress deployedAddress ", networkManagerAddress);
+
+    var nmContract = new web3.eth.Contract(JSON.parse(value[0]),networkManagerAddress);
+    let encodedABI = nmContract.methods.init().encodeABI();
+    var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,networkManagerAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
+    console.log("TransactionLog for Network Manager init() method -", transactionObject.transactionHash);
+  
+    var peerNodejson = JSON.parse(fs.readFileSync(peerNodesfileName, 'utf8'));
+    if(peerNodejson == "") {    
+        return;
+    }
+
+    var peerNodes = peerNodejson["nodes"];
+    for(var index = 0; index < peerNodes.length; index++){
+        encodedABI = nmContract.methods.registerNode(peerNodes[index].nodename,
+                                                    peerNodes[index].hostname,
+                                                    peerNodes[index].role,
+                                                    peerNodes[index].ipaddress,
+                                                    peerNodes[index].port.toString(),
+                                                    peerNodes[index].publickey,
+                                                    peerNodes[index].enodeUrl
+                                                ).encodeABI();
+        transactionObject = await utils.sendMethodTransaction(ethAccountToUse,networkManagerAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
+        console.log("TransactionLog for Network Manager registerNode -", transactionObject.transactionHash);
+    }
+
+    var noOfNodes = await nmContract.methods.getNodesCounter().call();
+    console.log("No of Nodes -", noOfNodes);
+    for(let nodeIndex = 0; nodeIndex < noOfNodes; nodeIndex++) {
+        let result = await nmContract.methods.getNodeDetails(nodeIndex).call();
+        console.log("Details of peer index-", nodeIndex);
+        console.log("HostName ", result.hostName,"\nRole ", result.role, "\nIP Address ", result.ipAddress, "\nPort ", result.port, "\nPublic Key ", result.publicKey, "\nEnode ", result.enode);
+    }
+    return;
+}
