@@ -104,9 +104,16 @@ var main = async function () {
             case "testPersonalImportAccount":
                 await testPersonalImportAccount();
                 break;
+
+            case "transferXLG":
+                let inputList = temp[1].split(",");
+                await transferXLG(inputList[0],inputList[1],inputList[2]);
+                //await testPersonalImportAccount();
+
             case "testNetworkManagerContract":
                 let peerNodesfileName = temp[1];
                 await testNetworkManagerContract(peerNodesfileName);
+
                 break;
             default:
                 //throw "command should be of form :\n node deploy.js host=<host> file=<file> contracts=<c1>,<c2> dir=<dir>";
@@ -427,6 +434,13 @@ async function testInvoicesContract(invoiceID,hashVal) {
 
     result = await invoice.methods.getInvoiceID(hashVal).call({from : ethAccountToUse});
     console.log("getInvoiceID after", result);
+}
+
+async function transferXLG(fromPrivateKey,toEthereumAccount,XLGAmount) {
+    
+    //const decryptedAccount = web3.eth.accounts.privateKeyToAccount(fromPrivateKey)
+    var transactionObject = await utils.transferXLG(fromPrivateKey,toEthereumAccount,XLGAmount,web3);
+    console.log("TransactionLog for transfer -", transactionObject.transactionHash);
 }
 
 async function deployERC20Contract(){

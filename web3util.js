@@ -120,14 +120,15 @@ class utils {
         } 
     }  
     
-    async sendMethodTransaction (fromAccountAddress, toContractAddress, methodData, privateKey, web3, estimatedGas){//, calleeMethodName,callback) {
+    async sendMethodTransaction (fromAccountAddress, toContractAddress, methodData, privateKey, web3, estimatedGas) {
         try
         {
             var gasPrice = await web3.eth.getGasPrice();
             console.log("gasPrice ",web3.utils.toHex(gasPrice)); 
 
             var balance = await web3.eth.getBalance(fromAccountAddress);
-            console.log("FromAccount", fromAccountAddress, "has balance of", web3.utils.fromWei(balance, 'xlg'), "XLG");
+
+            console.log("FromAccount", fromAccountAddress, "has balance of", web3.utils.fromWei(balance, 'xlg'), "xlg");
             
             let nonceToUse = await web3.eth.getTransactionCount(fromAccountAddress, 'pending');
             console.log("nonceToUse ",nonceToUse);
@@ -148,6 +149,54 @@ class utils {
             const serializedTx = tx.serialize();
 
             let transactionHash = await web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'));
+            // var receipt;
+            // do{
+            //     receipt = await web3.eth.getTransactionReceipt(transactionHash);
+            // }
+            // while(receipt == null)
+            if(transactionHash.status)
+                return transactionHash;
+            else
+                return "";
+        }
+        catch (error) {
+            console.log("Error in utils.sendMethodTransaction(): " + error);
+            return "";
+        }
+    }
+
+    async transferXLG(fromPrivateKey, toAddress, XLGAmount, web3) {
+        try
+        {
+            var gasPrice = await web3.eth.getGasPrice();
+            console.log("gasPrice ",web3.utils.toHex(gasPrice)); 
+
+            const fromAccountAddress = web3.eth.accounts.privateKeyToAccount(fromPrivateKey).address;
+            var balance = await web3.eth.getBalance(fromAccountAddress);
+            console.log("FromAccount", fromAccountAddress, "has balance of", web3.utils.fromWei(balance, 'xlg'), "xlg");
+            
+            let nonceToUse = await web3.eth.getTransactionCount(fromAccountAddress, 'pending');
+            console.log("nonceToUse ",nonceToUse);
+            const txParams = {
+                nonce: nonceToUse,
+                //gasPrice: '0x00',
+                gasPrice: web3.utils.toHex(gasPrice),//'0x4A817C800', //20Gwei
+                gasLimit: '0x47b760',//'0x48A1C0',//web3.utils.toWei(20,'gwei'), //estimatedGas, // Todo, estimate gas
+                from: fromAccountAddress,
+                to: toAddress,
+                value: web3.utils.toHex(web3.utils.toWei(XLGAmount, "xlg")),
+                data: ''
+            }
+            const tx = new EthereumTx(txParams);
+            const privateKey = fromPrivateKey.slice(2,fromPrivateKey.length);
+            const privateKeyBuffer = new Buffer(privateKey, 'hex');
+            tx.sign(privateKeyBuffer);
+            const serializedTx = tx.serialize();
+
+            let transactionHash = await web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'));
+
+            var balance = await web3.eth.getBalance(fromAccountAddress);
+            console.log("Now FromAccount", fromAccountAddress, "has balance of", web3.utils.fromWei(balance, 'xlg'), "xlg");
             // var receipt;
             // do{
             //     receipt = await web3.eth.getTransactionReceipt(transactionHash);

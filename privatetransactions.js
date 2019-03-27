@@ -40,6 +40,38 @@ var pk1 = "aJQSoVe94O/RF3tnpwHWNI8vodPckqg9DSUxGJjd7n8=";
 //     });
 // }
 
+function oldRawTx() {
+    const rawTransactionManager = quorumjs.RawTransactionManager(w1, {
+        privateUrl:c1
+    });
+    const txnParams = {
+        gasPrice: 0,
+        gasLimit: 4300000,
+        to: "",
+        value: 0,
+        data: methodData,        
+        isPrivate: true,
+        from: {
+            privateKey: '0x' + privateKey[0]
+        },
+        privateFrom: pk,
+        privateFor: [pk2],
+        nonce: 0
+    };
+    w1.eth.getTransactionCount(fromAccountAddress, 'pending', (err, nonce) => {
+        txnParams.nonce = nonce;
+        console.log("Nonce :", nonce);
+        const newTx = rawTransactionManager.sendRawTransaction(txnParams);
+        newTx.then(function (tx){
+                console.log("Contract address: ", tx.contractAddress);
+                get(tx.contractAddress);
+        }).catch(function (err) {
+            console.log("error");
+            console.log(err);
+        });
+    });
+}
+
 exports.deploy = async function() {
     const h1 = "http://" + host + ":8545";
     const h2 = "http://" + host + ":8546";
