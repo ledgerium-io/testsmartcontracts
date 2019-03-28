@@ -2,9 +2,9 @@
 const fs = require('fs');
 const Web3 = require('web3');
 const Utils =  require('./web3util');
-const privateTran =  require('./privatetransactions');
+const quorumjs   = require("quorum-js");
 
-var provider;
+var provider,fromPubKey,toPubKey;
 var protocol,host,port,web3;
 var subscribePastEventsFlag = false;
 var webSocketProtocolFlag = false;
@@ -85,8 +85,19 @@ var main = async function () {
             case "testgreeter":
                 await testGreetingContract();
                 break;
-            case "testprivate":
-                privateTran.deploy();
+            case "fromPubKey":
+                fromPubKey = temp[1];
+                fromPubKey+="=";
+                break;
+            case "toPubKey":
+                toPubKey = temp[1];
+                toPubKey+="=";
+                break;
+            case "testprivateTransactions":
+                let inputValues = temp[1].split(",");
+                if(inputValues.length > 4) {
+                    await deployGreeterPrivate(inputValues[0],inputValues[1],inputValues[2],inputValues[3],inputValues[4]);
+                }    
                 break;
             case "testInvoices":
                 let list = temp[1].split(",");
@@ -104,16 +115,13 @@ var main = async function () {
             case "testPersonalImportAccount":
                 await testPersonalImportAccount();
                 break;
-
             case "transferXLG":
                 let inputList = temp[1].split(",");
                 await transferXLG(inputList[0],inputList[1],inputList[2]);
                 //await testPersonalImportAccount();
-
             case "testNetworkManagerContract":
                 let peerNodesfileName = temp[1];
                 await testNetworkManagerContract(peerNodesfileName);
-
                 break;
             default:
                 //throw "command should be of form :\n node deploy.js host=<host> file=<file> contracts=<c1>,<c2> dir=<dir>";
@@ -673,4 +681,94 @@ async function testNetworkManagerContract(peerNodesfileName) {
         console.log("HostName ", result.hostName,"\nRole ", result.role, "\nIP Address ", result.ipAddress, "\nPort ", result.port, "\nPublic Key ", result.publicKey, "\nEnode ", result.enode);
     }
     return;
+}
+
+var web31,web32,web33,web34,web35,web36,web37;
+async function deployGreeterPrivate (toPrivatePort,toPort1,otherPort1,otherPort2,otherPort3) {
+    console.log(`${fromPubKey}`);
+    console.log(`${toPubKey}`);
+    fromPubKey = "BZlBCdGmjE+gAzGw2aHjF+AXm/tkFnjfut+uVFOZNEU="; 
+    toPubKey = "Zc86QC7mQOyE+0no3G0WnqqH5DrSWVIexxB+5HCXBBk=";
+    const h1 = "http://" + host + ":" + port;
+    const h2 = "http://" + host + ":" + toPort1;
+    const h3 = "http://" + host + ":" + otherPort1;
+    const h4 = "http://" + host + ":" + otherPort2;
+    const h5 = "http://" + host + ":" + otherPort3;
+    
+    const toPrivateURL = "http://" + host + ":" + toPrivatePort;
+
+    web31 = new Web3(new Web3.providers.HttpProvider(h1));
+    web32 = new Web3(new Web3.providers.HttpProvider(h2));
+    web33 = new Web3(new Web3.providers.HttpProvider(h3));
+    web34 = new Web3(new Web3.providers.HttpProvider(h4));
+    web35 = new Web3(new Web3.providers.HttpProvider(h5));
+
+    // Todo: Read ABI from dynamic source.
+    var value = utils.readSolidityContractJSON("./build/contracts/Greeter");
+    if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+        return;
+    }
+    var ethAccountToUse = global.accountAddressList[0];
+    var deployedAddressGreeter;
+
+    let constructorParameters = [];
+    constructorParameters.push("Hi Ledgerium");
+    //value[0] = Contract ABI and value[1] =  Contract Bytecode
+    let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web31,constructorParameters);
+    const rawTransactionManager = quorumjs.RawTransactionManager(web31, {
+        privateUrl:toPrivateURL
+    });
+    var abcd = '0x' + global.privateKey[ethAccountToUse];
+    const txnParams = {
+        gasPrice: 0,
+        gasLimit: 4300000,
+        to: "",
+        value: 0,
+        data: encodedABI,        
+        isPrivate: true,
+        from: {
+            privateKey: abcd
+        },
+        privateFrom: fromPubKey,
+        privateFor: [toPubKey],
+        nonce: 0
+    };
+    web31.eth.getTransactionCount(ethAccountToUse, 'pending', (err, nonce) => {
+        txnParams.nonce = nonce;
+        console.log("Nonce :", nonce);
+        const newTx = rawTransactionManager.sendRawTransaction(txnParams);
+        newTx.then(function (tx){
+            deployedAddressGreeter = tx.contractAddress;
+            console.log("Greeter deployed contract address: ", deployedAddressGreeter);
+            console.log("Greeter deployed transactionHash: ", tx.transactionHash);
+            utils.writeContractsINConfig("Greeter",deployedAddressGreeter);
+            getGreeterValues(deployedAddressGreeter);
+        }).catch(function (err) {
+            console.log("error");
+            console.log(err);
+        });
+    });
+}
+
+async function getGreeterValues(deployedAddressGreeter) {
+    // Todo: Read ABI from dynamic source.
+    var value = utils.readSolidityContractJSON("./build/contracts/Greeter");
+    if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+        return;
+    }
+    
+    const contract1 = new web31.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
+    const contract2 = new web32.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
+    const contract3 = new web33.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
+    const contract4 = new web34.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
+    const contract5 = new web35.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
+    // const c6 = new w6.eth.Contract(abi,addr);
+    // const c7 = new w7.eth.Contract(abi,addr);
+    contract1.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 1")});
+    contract2.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 2")});
+    contract3.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 3")});
+    contract4.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 4")});
+    contract5.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 5")});
+    // c6.methods.get().call().then(console.log).catch((err)=>{console.log("err 6")});
+    // c7.methods.get().call().then(console.log).catch((err)=>{console.log("err 7")});
 }
