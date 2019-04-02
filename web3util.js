@@ -6,6 +6,7 @@ const solc = require('solc');
 const EthereumTx = require('ethereumjs-tx');
 var keythereum = require('keythereum');
 const ethUtil = require('ethereumjs-util');
+var txDecoder = require('ethereum-tx-decoder');
 
 class utils {
     async getCurrentTime () {
@@ -165,6 +166,20 @@ class utils {
         }
     }
 
+    async decodeInputVals(transactionHash, abi, web3) {
+        try
+        {
+            var trandetails = await web3.eth.getTransaction(transactionHash);
+            const fnDecoder = new txDecoder.FunctionDecoder(abi);
+            const res = fnDecoder.decodeFn(trandetails.input);
+            return res;
+        }
+        catch (error) {
+            console.log("Error in utils.decodeInputVals(): " + error);
+            return "";
+        }    
+    }
+    
     async transferXLG(fromPrivateKey, toAddress, XLGAmount, web3) {
         try
         {
@@ -213,7 +228,7 @@ class utils {
         }
     }
 
-    async sendUnsignedTransaction (fromAccountAddress, toContractAddress, methodData, web3){
+    async sendUnsignedTransaction (fromAccountAddress, toContractAddress, methodData, web3) {
         try
         {
             var gasPrice = await web3.eth.getGasPrice();
@@ -474,7 +489,7 @@ class utils {
         return;
     }
       
-    async readWritePrivateKeys(){
+    async readWritePrivateKeys() {
         try{
             const password = "password";
             accountAddressList.length = 0;
@@ -529,7 +544,7 @@ class utils {
         }
     }  
     
-    async readAccountsAndKeys(){
+    async readAccountsAndKeys() {
         var privateKeyFileName = __dirname + "/keystore/" + "privatekey.json";
         if(fs.existsSync(privateKeyFileName)){
             var keyData = fs.readFileSync(privateKeyFileName,"utf8");
@@ -546,7 +561,7 @@ class utils {
         }    
     }
       
-    async writeAccountsAndKeys(){
+    async writeAccountsAndKeys() {
         var privateKeyFileName = __dirname + "/keystore/" + "privatekey.json";
         var data = JSON.stringify(privateKey,null, 2);
         fs.writeFileSync(privateKeyFileName,data);
@@ -554,7 +569,7 @@ class utils {
         return false;
     }
       
-    readContractFromConfigContracts(contractName){
+    readContractFromConfigContracts(contractName) {
         try{
             var contractFileName = __dirname + "/keystore/" + "contractsconfig.json";
             var keyData = {};
@@ -573,7 +588,7 @@ class utils {
         }
     }    
       
-    async writeContractsINConfig(contractName,contractAddress){
+    async writeContractsINConfig(contractName,contractAddress) {
         try{
             var contractFileName = __dirname + "/keystore/" + "contractsconfig.json";
             contractsList[contractName] = contractAddress;
@@ -586,7 +601,7 @@ class utils {
         }
     }
 
-    readContractsFromConfig(){
+    readContractsFromConfig() {
         try{
               var contractFileName = __dirname + "/keystore/" + "contractsconfig.json";
               var keyData = {};
