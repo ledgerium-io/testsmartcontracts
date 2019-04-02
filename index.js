@@ -75,6 +75,17 @@ var main = async function () {
                         break;     
                 }
                 break;
+            case "usecontractconfig":
+                let contractconfig = temp[1];
+                switch(contractconfig){
+                    case "true":
+                    default: 
+                        usecontractconfigFlag = true;
+                        break;
+                    case "false":
+                        break;     
+                }
+                break;
             case "rinkeby":
                 let HDWalletProvider = require("truffle-hdwallet-provider");
                 provider = new HDWalletProvider(privateKey[accountAddressList[0]], "https://rinkeby.infura.io/v3/931eac1d45254c16acc71d0fc11b88f0");
@@ -408,7 +419,10 @@ async function testGreetingContract() {
     
     let encodedABI = greeting.methods.setMyNumber(499).encodeABI();
     var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedAddressGreeter,encodedABI,privateKey[ethAccountToUse],web3,0);
-    console.log("TransactionLog for Greeter Setvalue -", transactionObject.transactionHash);
+    console.log("TransactioHash for Greeter Setvalue -", transactionObject.transactionHash);
+
+    var val = await utils.decodeInputVals(transactionObject.transactionHash,value[0],web3);
+    console.log("Input value for TransactioHash", transactionObject.transactionHash, "is", val.value);
 
     result = await greeting.methods.getMyNumber().call({from : ethAccountToUse});
     console.log("getMyNumber after", result);
@@ -642,12 +656,26 @@ async function testNetworkManagerContract(peerNodesfileName) {
         return;
     }
 
-    let constructorParameters = [];
-    let encodedABIdeployedContract = await utils.getContractEncodeABI(value[0], value[1], web3, constructorParameters);
-    let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABIdeployedContract,privateKey[ethAccountToUse],web3,0);
-    var networkManagerAddress = transactionHash.contractAddress;
-    //var networkManagerAddress = "0x0000000000000000000000000000000000002023";
-    console.log("networkManagerAddress deployedAddress ", networkManagerAddress);
+    var networkManagerAddress = "";
+    if(!usecontractconfigFlag){
+        let constructorParameters = [];
+        //value[0] = Contract ABI and value[1] =  Contract Bytecode
+        let encodedABI = await utils.getContractEncodeABI(value[0], value[1], web3, constructorParameters);
+        let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3, 0);
+        networkManagerAddress = transactionHash.contractAddress;
+        console.log("NetworkManager deployedAddress ", networkManagerAddress);
+        utils.writeContractsINConfig("NetworkManager",networkManagerAddress);
+    }
+    else{
+        networkManagerAddress = utils.readContractFromConfigContracts("NetworkManager");
+    }
+    
+    // let constructorParameters = [];
+    // let encodedABIdeployedContract = await utils.getContractEncodeABI(value[0], value[1], web3, constructorParameters);
+    // let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABIdeployedContract,privateKey[ethAccountToUse],web3,0);
+    // var networkManagerAddress = transactionHash.contractAddress;
+    // //var networkManagerAddress = "0x0000000000000000000000000000000000002023";
+    // console.log("networkManagerAddress deployedAddress ", networkManagerAddress);
 
     var nmContract = new web3.eth.Contract(JSON.parse(value[0]),networkManagerAddress);
     let encodedABI = nmContract.methods.init().encodeABI();
@@ -671,6 +699,12 @@ async function testNetworkManagerContract(peerNodesfileName) {
                                                 ).encodeABI();
         transactionObject = await utils.sendMethodTransaction(ethAccountToUse,networkManagerAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
         console.log("TransactionLog for Network Manager registerNode -", transactionObject.transactionHash);
+
+        var val = await utils.decodeInputVals(transactionObject.transactionHash,value[0],web3);
+        if(val.length >0)
+            console.log("Input values for TransactioHash", transactionObject.transactionHash, "are", val[0],val[1],val[2],val[3],val[4],val[5],val[6]);
+        else
+            console.log("Input values for TransactioHash", transactionObject.transactionHash, "are not available!");    
     }
 
     var noOfNodes = await nmContract.methods.getNodesCounter().call();
