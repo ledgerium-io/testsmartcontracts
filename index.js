@@ -17,6 +17,7 @@ global.web3 = web3;
 const utils = new Utils();
 global.utils = utils;
 
+var URL;
 var privateKey = {};
 var accountAddressList = [];
 var contractsList = {};
@@ -54,7 +55,7 @@ var main = async function () {
             case "port":
                 port = temp[1];
                 global.port = port;
-                let URL = "http://" + host + ":" + port;
+                URL = "http://" + host + ":" + port;
                 web3 = new Web3(new Web3.providers.HttpProvider(URL));
                 global.web3 = web3;
                 break;
@@ -110,10 +111,11 @@ var main = async function () {
                     await deployGreeterPrivate(inputValues[0],inputValues[1],inputValues[2],inputValues[3],inputValues[4]);
                 }    
                 break;
-            case "testInvoices":
+            case "testInvoices": {
                 let list = temp[1].split(",");
                 await testInvoicesContract(list[0],list[1]);
                 break;
+            }
             case "deployERC20Mock":
                 await deployERC20MockContract();
                 break;
@@ -123,13 +125,19 @@ var main = async function () {
             case "testLedgeriumToken":
                 await testLedgeriumToken();
                 break;
-            case "testPersonalImportAccount":
-                await testPersonalImportAccount();
+            case "testPersonalImportAccount": {
+                let prvKeys = temp[1].split(",");
+                let password = prvKeys.pop();
+                await testPersonalImportAccount(prvKeys,password);
                 break;
+            }    
             case "transferXLG":
                 let inputList = temp[1].split(",");
                 await transferXLG(inputList[0],inputList[1],inputList[2]);
-                //await testPersonalImportAccount();
+                break;
+            case "synchPeers":
+                await synchPeers();
+                break;
             case "testNetworkManagerContract":
                 let peerNodesfileName = temp[1];
                 await testNetworkManagerContract(peerNodesfileName);
@@ -460,9 +468,18 @@ async function testInvoicesContract(invoiceID,hashVal) {
 
 async function transferXLG(fromPrivateKey,toEthereumAccount,XLGAmount) {
     
-    //const decryptedAccount = web3.eth.accounts.privateKeyToAccount(fromPrivateKey)
-    var transactionObject = await utils.transferXLG(fromPrivateKey,toEthereumAccount,XLGAmount,web3);
-    console.log("TransactionLog for transfer -", transactionObject.transactionHash);
+    var transactionObject = "";
+    if(fromPrivateKey.indexOf("0x") == 0) { //when privatekeys are prefixed 0x
+        transactionObject = await utils.transferXLG(fromPrivateKey,toEthereumAccount,XLGAmount,web3);
+        console.log("TransactionLog for transfer -", transactionObject.transactionHash);
+    } else if(fromPrivateKey.indexOf("0x") == -1) { //when privatekeys are not prefixed 0x
+        fromPrivateKey = "0x" + fromPrivateKey;
+        transactionObject = await utils.transferXLG(fromPrivateKey,toEthereumAccount,XLGAmount,web3);
+        console.log("TransactionLog for transfer -", transactionObject.transactionHash);
+    } else {
+        console.log("Wrong format private keys!!");
+        process.exit(1);
+    }
 }
 
 async function deployERC20Contract(){
@@ -606,38 +623,46 @@ async function testLedgeriumToken(){
     // console.log("TransactionLog for multiSigContract transfer -", transactionObject.transactionHash);
 }
 
-async function testPersonalImportAccount() {
+async function testPersonalImportAccount(inputPrivateKeys, password) {
 
-    accountAddressList = global.accountAddressList;
-    privateKey = global.privateKey;  
+    if(inputPrivateKeys.length <= 0)
+        return;
   
-    var password = "password";
     var ethereumAccountsList = await web3.eth.getAccounts();
     console.log("No of Ethereum accounts on the node ",ethereumAccountsList.length);
-    //if(ethereumAccountsList.length < 3)
-    {
-        // await utils.personalImportAccount(privateKey[accountAddressList[0]],password);
-        // await utils.personalImportAccount(privateKey[accountAddressList[1]],password);
-        // await utils.personalImportAccount(privateKey[accountAddressList[2]],password);
-        // await utils.personalImportAccount(privateKey[accountAddressList[10]],password);
-        await utils.unlockPersonalAccount(accountAddressList[0],password);
 
-      //Transfer some ether from coinbase account to newly created accounts!
-      var coinbase = await web3.eth.getCoinbase();
-      //var receipt;
-      receipt = await utils.sendUnsignedTransaction(coinbase,accountAddressList[1],web3.utils.toWei("1.0", "ether"),web3);
-      receipt = await utils.sendUnsignedTransaction(coinbase,accountAddressList[2],web3.utils.toWei("1.0", "ether"),web3);
-      receipt = await utils.sendUnsignedTransaction(coinbase,accountAddressList[10],web3.utils.toWei("1.0", "ether"),web3);
-      //receipt = await utils.sendUnsignedTransaction(coinbase,accountAddressList[10],"0x00",privateKey[coinbase],web3.utils.toWei("1.0", "ether"),web3);
-      //receipt = await utils.sendMethodTransactionOld(coinbase,accountAddressList[1],"0x00",privateKey[coinbase],web3.utils.toWei("1.0", "ether"),web3);
-      //receipt = await utils.sendMethodTransactionOld(coinbase,accountAddressList[2],"0x00",privateKey[coinbase],web3.utils.toWei("1.0", "ether"),web3);
+    for(var index = 0; index < inputPrivateKeys.length; index++)
+    {
+        let flag = false;
+        let eachElement = inputPrivateKeys[index];
+        if(eachElement.indexOf("0x") == 0) { //when privatekeys are prefixed 0x
+            flag = true;
+        } else if(eachElement.indexOf("0x") == -1) { //when privatekeys are not prefixed 0x
+            eachElement = "0x" + eachElement;
+            flag = true;
+        } else {
+            console.log("Wrong format private key!!, This key will not be considered");
+        }
+        if(!flag)
+            continue;
+        let fromAccountAddress = await web3.eth.accounts.privateKeyToAccount(eachElement).address;
+        //ethereum gives back mixed case account address, we need to lowercase each of them before comparing! Have to run the loop. 
+        let found = false;
+        for (let item of ethereumAccountsList) {
+            if(item.toLowerCase() == fromAccountAddress.toLowerCase()) {
+                found = true;
+                break;
+            }
+        }
+        if(found){
+            found = false;
+            continue;
+        }
+        let ret = await utils.personalImportAccount(eachElement,password);
+        console.log("Account", ret, "got imported!");
+        var balance = await web3.eth.getBalance(ret);
+        console.log("FromAccount", ret, "has balance of", web3.utils.fromWei(balance, 'xlg'), "xlg");
     }
-      
-    //With assumption that accountAddressList[0],accountAddressList[1], accountAddressList[2] are present in etherum 
-    //and needs to be unlocked before running the testcases. 
-    // await utils.unlockPersonalAccount(accountAddressList[0],password);
-    // await utils.unlockPersonalAccount(accountAddressList[1],password);
-    // await utils.unlockPersonalAccount(accountAddressList[2],password);
 }
 
 async function testNetworkManagerContract(peerNodesfileName) {
@@ -713,6 +738,71 @@ async function testNetworkManagerContract(peerNodesfileName) {
         let result = await nmContract.methods.getNodeDetails(nodeIndex).call();
         console.log("Details of peer index-", nodeIndex);
         console.log("HostName ", result.hostName,"\nRole ", result.role, "\nIP Address ", result.ipAddress, "\nPort ", result.port, "\nPublic Key ", result.publicKey, "\nEnode ", result.enode);
+    }
+    return;
+}
+
+async function synchPeers() {
+
+    accountAddressList = global.accountAddressList;
+    privateKey = global.privateKey;
+
+    var nodesList = await utils.getAdminPeers(URL);
+    var ethAccountToUse = global.accountAddressList[0];
+
+    // Todo: Read ABI from dynamic source.
+    var filename = __dirname + "/build/contracts/NetworkManagerContract";
+    var value = utils.readSolidityContractJSON(filename);
+    if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+        return;
+    }
+
+    var networkManagerAddress = "";
+    if(!usecontractconfigFlag){
+        let constructorParameters = [];
+        //value[0] = Contract ABI and value[1] =  Contract Bytecode
+        let encodedABI = await utils.getContractEncodeABI(value[0], value[1], web3, constructorParameters);
+        let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3, 0);
+        networkManagerAddress = transactionHash.contractAddress;
+        console.log("NetworkManager deployedAddress ", networkManagerAddress);
+        utils.writeContractsINConfig("NetworkManager",networkManagerAddress);
+    }
+    else{
+        networkManagerAddress = utils.readContractFromConfigContracts("NetworkManager");
+        if(networkManagerAddress == "")
+            networkManagerAddress = "0x0000000000000000000000000000000000002023";
+    }
+    
+    var nmContract = new web3.eth.Contract(JSON.parse(value[0]),networkManagerAddress);
+    var nodesListBlockchain = [];
+    var noOfNodes = await nmContract.methods.getNodesCounter().call();
+    console.log("No of Nodes -", noOfNodes);
+    for(let nodeIndex = 0; nodeIndex < noOfNodes; nodeIndex++) {
+        let result = await nmContract.methods.getNodeDetails(nodeIndex).call();
+        nodesListBlockchain.push(result);
+    }
+    
+    for(var index = 0; index < nodesList.length; index++) {
+        let flag = false;
+        for(let nodeIndex = 0; nodeIndex < noOfNodes; nodeIndex++) { 
+            var nodeBlockChain = nodesListBlockchain[nodeIndex];
+            if (nodesList[index].enode == nodeBlockChain.enode) {
+                flag = true;
+                break;
+            }
+        }
+        if(!flag) {
+            let encodedABI = nmContract.methods.registerNode(nodesList[index].hostname,
+                nodesList[index].hostname,
+                nodesList[index].role,
+                nodesList[index].ipaddress,
+                nodesList[index].port,
+                nodesList[index].publickey,
+                nodesList[index].enode
+            ).encodeABI();
+            var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,networkManagerAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
+            console.log("TransactionLog for adding peer", nodesList[index].enode, "Network Manager registerNode -", transactionObject.transactionHash);
+        }
     }
     return;
 }

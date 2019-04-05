@@ -11,12 +11,13 @@
             "name": "Launch Program",
             "program": "${workspaceFolder}/index.js",
             //"args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "testInvoices=0x4321,790afdeb16ae5c22453f8eeee25038c314f09d64fc51b8e21a5a82225e54fde6"]
-            //"args":["protocol=http", "hostname=testnet.ledgerium.net", "port=28545", "transferXLG=0x9d698949e6ddb9086c34409b16f81c854ef2d7f73e020db7f896ed615efa25b1,0xf232a4bf183cf17d09bea23e19ceff58ad9dbfed,3"]
+            //"args":["protocol=http", "hostname=testnet.ledgerium.net", "port=8545", "transferXLG=b4055ee36f2e18fa9df65a1428305f6ff999b2236bf0fe87e7b46022739764b5,0xc7a89e9c2d5acd30cf78f8a9ef4777c10bb69a07,1000"]
             //"args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "testLedgeriumToken"]
-            //"args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "testPersonalImportAccount"]
-            //"args":["protocol=http", "hostname=125.254.27.14", "port=28545", "readkeyconfig=true", "usecontractconfig=true", "testgreeter"],
+            //"args":["protocol=http", "hostname=localhost", "port=8545", "testPersonalImportAccount=6004b61bf9cfd681a30e1e0f3ed7be72b02df25b33041294891a12fc55f5de58,password"]
+            "args":["protocol=http", "hostname=testnet.ledgerium.net", "port=8545", "readkeyconfig=true", "usecontractconfig=true", "synchPeers"]
+            //"args":["protocol=http", "hostname=125.254.27.14", "port=8545", "readkeyconfig=true", "testgreeter"],
             //"args":["protocol=http", "hostname=testnet.ledgerium.net", "port=28545", "readkeyconfig=true", "fromPubKey=BZlBCdGmjE+gAzGw2aHjF+AXm/tkFnjfut+uVFOZNEU=", "toPubKey=Zc86QC7mQOyE+0no3G0WnqqH5DrSWVIexxB+5HCXBBk=", "testprivateTransactions=21100,28546,28547,28548,28549"]
-            "args":["protocol=http", "hostname=125.254.27.14", "port=28545", "readkeyconfig=true", "testNetworkManagerContract=../ledgeriumtools/output/tmp/nodesdetails.json"]
+            //"args":["protocol=http", "hostname=125.254.27.14", "port=28545", "readkeyconfig=true", "testNetworkManagerContract=../ledgeriumtools/output/tmp/nodesdetails.json"]
         }
     ]
 }
