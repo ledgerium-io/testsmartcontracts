@@ -1,6 +1,7 @@
 pragma solidity ^0.5.1;
 import "./SafeMath.sol";
 import "./MultiSigSecured.sol";
+import "./Stoppable.sol";
 
 /*
  * @title Index 
@@ -11,9 +12,10 @@ import "./MultiSigSecured.sol";
  *
  */
 
-contract Index is MultiSigSecured {
+contract Index is MultiSigSecured,Stoppable {
     
     using SafeMath for uint32;
+    using SafeMath for uint256;
 
 	struct Contract{
 		address   currentAddress;
@@ -34,11 +36,11 @@ contract Index is MultiSigSecured {
 		return string( abi.encodePacked( _method, _contractName ) );
 	}
 
-	function toString(address _address) public pure returns(string memory s){
+	function toString (address _address) public pure returns(string memory s){
 		return string( abi.encodePacked(_address) );
 	}
 
-	function createAddressUpdateProposal(string memory _contractName, address _newAddress, uint32 _minVotes) public returns (bool res){
+	function createAddressUpdateProposal (string memory _contractName, address _newAddress, uint32 _minVotes) public returns (bool res){
 		assert ( stakeHolders[msg.sender] );
 		string memory _temp = append( "updateAddress-", _contractName );
 		assert ( ! isBallotActive( _temp ) );
@@ -55,7 +57,7 @@ contract Index is MultiSigSecured {
 		return true;
 	}
 
-	function updateAddress(string memory _contractName, bool _decision) public returns(bool res) {
+	function updateAddress (string memory _contractName, bool _decision) public returns(bool res) {
 		assert( stakeHolders[msg.sender] );
 		string memory _temp = append( "updateAddress-", _contractName );
 		assert( isBallotActive( _temp ) );
@@ -84,7 +86,7 @@ contract Index is MultiSigSecured {
 		return true;
 	}
 
-	function createStakeholderUpdate(address _newStakeholder, uint32 _minVotes, bool _decision) public returns (bool res){
+	function createStakeholderUpdate (address _newStakeholder, uint32 _minVotes, bool _decision) public returns (bool res){
 		assert( stakeHolders[msg.sender] );
 		string memory _temp = append( "updateAddress-", toString(_newStakeholder) );
 		assert( ! isBallotActive(_temp) );
@@ -99,7 +101,7 @@ contract Index is MultiSigSecured {
 		return true;
 	}
 
-	function updateStakeholder(address _newStakeholder, bool _decision) public returns (bool res){
+	function updateStakeholder (address _newStakeholder, bool _decision) public returns (bool res){
 		assert( stakeHolders[msg.sender] );
 		string memory _temp = append( "updateAddress-", toString(_newStakeholder) );
 		assert( isBallotActive(_temp) );
@@ -121,7 +123,53 @@ contract Index is MultiSigSecured {
 			clearBallot( _temp );
 		}
 		return true;
+	}
 
+	function createGlobalPauseProposal (uint32 _minVotes) public returns(bool) {
+		assert( stakeHolders[msg.sender] );
+		assert( !isBallotActive("stop") );
+		assert( _minVotes > 1 );
+		createBallot(
+		    "stop",
+		    0x0000000000000000000000000000000000000000,
+		    true,
+		    _minVotes,
+		    msg.sender
+		);
+		return true;
+	}
+
+	function updatePauseProposal (bool _decision) public returns (bool){
+		assert( stakeHolders[msg.sender] );
+		string memory STOP = "stop";
+		assert( isBallotActive(STOP) );
+		if ( _decision )
+			voteFor ( STOP, msg.sender );
+		else
+			voteAgainst( STOP, msg.sender );
+
+		uint32 minVotes = getAcceptThreshold(STOP);
+		uint32[2] memory votes = getVotes(STOP);
+
+		if ( votes[0] >= minVotes ) {
+			stopContract();
+			clearBallot( STOP );
+			return true;
+		}
+		if ( votes[1] + minVotes > totalStakeHolders ){
+			startContract();
+			clearBallot( STOP );
+		}
+		return true;
+	}
+
+	function getAddress(string memory _contractName) public view returns(address _contractAddress){
+		assert ( getContractStatus() );
+		return contractMapping[_contractName].currentAddress;
+	}
+
+	function isStakeholder (address _address) public view returns(bool){
+		return stakeHolders[_address];
 	}
 
 }
