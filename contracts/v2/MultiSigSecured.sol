@@ -48,9 +48,9 @@ contract MultiSigSecured {
 		uint32 votesFor     = 0;
 		uint32 votesAgainst = 0;
 		if(_initialVote)
-			votesFor.add32(1);
+			votesFor = votesFor.add32(1);
 		else
-			votesAgainst.add32(1);
+			votesAgainst = votesAgainst.add32(1);
 		address[] memory temp;
 		ballotMap[_method] = Ballot({
 			newAddress:_newAddress,
@@ -69,7 +69,7 @@ contract MultiSigSecured {
 		return true;
 	}
 
-	function isBallotActive(string memory _method) public view returns(bool){
+	function isBallotActive(string memory _method) internal view returns(bool){
 		return ballotMap[_method].isActive;
 	}
 
@@ -77,18 +77,18 @@ contract MultiSigSecured {
 		return ballotMap[_method].newAddress;
 	}
 
-	function getVotes(string memory _method) public view returns(uint32[2] memory v){
+	function getVotes(string memory _method) internal view returns(uint32[2] memory v){
 		uint32[2] memory _votes;
 		_votes[0] = ballotMap[_method].votesFor;
 		_votes[1] = ballotMap[_method].votesAgainst;
 		return _votes;
 	}
 
-	function getAcceptThreshold(string memory _method) public view returns(uint32 _minVotes){
+	function getAcceptThreshold(string memory _method) internal view returns(uint32 _minVotes){
 		return ballotMap[_method].minVotesRequired;
 	}
 
-	function getVotedAddresses(string memory _method) public view returns(address[] memory _addresses){
+	function getVotedAddresses(string memory _method) internal view returns(address[] memory _addresses){
 		return ballotMap[_method].votedAddresses;
 	}
 

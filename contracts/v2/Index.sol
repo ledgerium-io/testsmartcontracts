@@ -25,18 +25,23 @@ contract Index is MultiSigSecured,Stoppable {
 	}
 
 	mapping ( string  => Contract ) private contractMapping;
-	mapping ( address => bool ) public stakeHolders;
+	mapping ( address => bool ) private stakeHolders;
 	uint32  public totalStakeHolders;
 
 	constructor () public {
-
+        stakeHolders[0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c] = true;
+        stakeHolders[0x14723A09ACff6D2A60DcdF7aA4AFf308FDDC160C] = true;
+        stakeHolders[0x4B0897b0513fdC7C541B6d9D7E929C4e5364D2dB] = true;
+        stakeHolders[0x583031D1113aD414F02576BD6afaBfb302140225] = true;
+        stakeHolders[0xdD870fA1b7C4700F2BD7f44238821C26f7392148] = true;
+        totalStakeHolders = 5;
 	}
 
 	function append (string memory _method, string memory _contractName) pure internal returns(string memory m){
 		return string( abi.encodePacked( _method, _contractName ) );
 	}
 
-	function toString (address _address) public pure returns(string memory s){
+	function toString (address _address) internal pure returns(string memory s){
 		return string( abi.encodePacked(_address) );
 	}
 
@@ -44,8 +49,8 @@ contract Index is MultiSigSecured,Stoppable {
 		assert ( stakeHolders[msg.sender] );
 		string memory _temp = append( "updateAddress-", _contractName );
 		assert ( ! isBallotActive( _temp ) );
-		assert ( _minVotes > 1 );
-		assert ( ! contractMapping[_contractName].status );
+		assert ( _minVotes > 1 && _minVotes < totalStakeHolders );
+		// assert ( ! contractMapping[_contractName].status );
 		createBallot(
 			_temp,
 			_newAddress,
@@ -57,7 +62,7 @@ contract Index is MultiSigSecured,Stoppable {
 		return true;
 	}
 
-	function updateAddress (string memory _contractName, bool _decision) public returns(bool res) {
+	function updateContractAddress (string memory _contractName, bool _decision) public returns(bool res) {
 		assert( stakeHolders[msg.sender] );
 		string memory _temp = append( "updateAddress-", _contractName );
 		assert( isBallotActive( _temp ) );
