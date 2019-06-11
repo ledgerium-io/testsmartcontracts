@@ -14,9 +14,9 @@
             //"args":["protocol=http", "hostname=testnet.ledgerium.net", "port=8545", "transferXLG=b4055ee36f2e18fa9df65a1428305f6ff999b2236bf0fe87e7b46022739764b5,0xc7a89e9c2d5acd30cf78f8a9ef4777c10bb69a07,1000"]
             //"args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "testLedgeriumToken"]
             //"args":["protocol=http", "hostname=localhost", "port=8545", "testPersonalImportAccount=6004b61bf9cfd681a30e1e0f3ed7be72b02df25b33041294891a12fc55f5de58,password"]
-            "args":["protocol=http", "hostname=testnet.ledgerium.net", "port=8545", "readkeyconfig=true", "usecontractconfig=true", "synchPeers"]
+            //"args":["protocol=http", "hostname=testnet.ledgerium.net", "port=8545", "readkeyconfig=true", "usecontractconfig=true", "synchPeers"]
             //"args":["protocol=http", "hostname=125.254.27.14", "port=8545", "readkeyconfig=true", "testgreeter"],
-            //"args":["protocol=http", "hostname=testnet.ledgerium.net", "port=28545", "readkeyconfig=true", "fromPubKey=BZlBCdGmjE+gAzGw2aHjF+AXm/tkFnjfut+uVFOZNEU=", "toPubKey=Zc86QC7mQOyE+0no3G0WnqqH5DrSWVIexxB+5HCXBBk=", "testprivateTransactions=21100,28546,28547,28548,28549"]
+            "args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "fromPubKey=48kT1ooOru1Z7iL4XNTS8QYnfLTjSHlEvYjB2ZimRC4=", "toPubKey=wOZNzQfpFExo6J6c5r8X7750sOSD2HMjN6w8fotElg8=", "testprivateTransactions=10100,8546,8547,8548"]
             //"args":["protocol=http", "hostname=125.254.27.14", "port=28545", "readkeyconfig=true", "testNetworkManagerContract=../ledgeriumtools/output/tmp/nodesdetails.json"]
         }
     ]
