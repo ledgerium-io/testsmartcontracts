@@ -35,6 +35,8 @@ contract Index is MultiSigSecured,Stoppable {
         stakeHolders[0x583031D1113aD414F02576BD6afaBfb302140225] = true;
         stakeHolders[0xdD870fA1b7C4700F2BD7f44238821C26f7392148] = true;
         totalStakeHolders = 5;
+        methodList["updateAddress"] = true;
+        methodList["updateStakeholder"] = true;
 	}
 
 	function append (string memory _method, string memory _contractName) pure internal returns(string memory m){
@@ -48,6 +50,7 @@ contract Index is MultiSigSecured,Stoppable {
 	function createAddressUpdateProposal (string memory _contractName, address _newAddress, uint32 _minVotes) public returns (bool res){
 		assert ( stakeHolders[msg.sender] );
 		string memory _temp = append( "updateAddress-", _contractName );
+		assert ( getMethodStatus( "updateAddress" ) );
 		assert ( ! isBallotActive( _temp ) );
 		assert ( _minVotes > 1 && _minVotes < totalStakeHolders );
 		// assert ( ! contractMapping[_contractName].status );
@@ -93,9 +96,13 @@ contract Index is MultiSigSecured,Stoppable {
 
 	function createStakeholderUpdate (address _newStakeholder, uint32 _minVotes, bool _decision) public returns (bool res){
 		assert( stakeHolders[msg.sender] );
-		string memory _temp = append( "updateAddress-", toString(_newStakeholder) );
+		string memory _temp = append( "updateStakeholder-", toString(_newStakeholder) );
 		assert( ! isBallotActive(_temp) );
 		assert( _minVotes > 1 );
+		if ( !_decision && totalStakeHolders <= 4 )
+			return false; 
+		if ( _decision && totalStakeHolders >= 21 )
+			return false;
 		createBallot(
 		    _temp,
 		    _newStakeholder,
@@ -108,7 +115,7 @@ contract Index is MultiSigSecured,Stoppable {
 
 	function updateStakeholder (address _newStakeholder, bool _decision) public returns (bool res){
 		assert( stakeHolders[msg.sender] );
-		string memory _temp = append( "updateAddress-", toString(_newStakeholder) );
+		string memory _temp = append( "updateStakeholder-", toString(_newStakeholder) );
 		assert( isBallotActive(_temp) );
 		if ( _decision )
 			voteFor( _temp, msg.sender);
@@ -130,14 +137,14 @@ contract Index is MultiSigSecured,Stoppable {
 		return true;
 	}
 
-	function createGlobalPauseProposal (uint32 _minVotes) public returns(bool) {
+	function createGlobalPauseProposal (uint32 _minVotes, bool _decision) public returns(bool) {
 		assert( stakeHolders[msg.sender] );
 		assert( !isBallotActive("stop") );
 		assert( _minVotes > 1 );
 		createBallot(
 		    "stop",
 		    0x0000000000000000000000000000000000000000,
-		    true,
+		    _decision,
 		    _minVotes,
 		    msg.sender
 		);
@@ -171,6 +178,16 @@ contract Index is MultiSigSecured,Stoppable {
 	function getAddress(string memory _contractName) public view returns(address _contractAddress){
 		assert ( getContractStatus() );
 		return contractMapping[_contractName].currentAddress;
+	}
+
+	function pauseMthod( string memory _method ) public returns ( bool ) {
+		assert( stakeHolders[msg.sender] );
+		return stopMethod( _method );
+	}
+
+	function unpauseMethod( string memory _method ) public returns (bool) {
+		assert (stakeHolders[msg.sender]);
+		return startMethod( _method );
 	}
 
 	function isStakeholder (address _address) public view returns(bool){
