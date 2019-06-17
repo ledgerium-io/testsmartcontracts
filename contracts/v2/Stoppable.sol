@@ -18,6 +18,11 @@ contract Stoppable {
 		assert(contractState);
 		_;
 	}
+	constructor ( ) public {
+            methodList["updateAddress"] = true;
+            methodList["updateStakeholder"] = true;
+
+        }
 
 	function startContract () internal returns(bool){
 		contractState = true;
