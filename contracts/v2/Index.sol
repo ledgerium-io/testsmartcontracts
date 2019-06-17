@@ -180,7 +180,7 @@ contract Index is MultiSigSecured,Stoppable {
 		return contractMapping[_contractName].currentAddress;
 	}
 
-	function pauseMthod( string memory _method ) public returns ( bool ) {
+	function pauseMethod( string memory _method ) public returns ( bool ) {
 		assert( stakeHolders[msg.sender] );
 		return stopMethod( _method );
 	}
