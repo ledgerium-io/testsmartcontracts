@@ -35,8 +35,7 @@ contract Index is MultiSigSecured,Stoppable {
         stakeHolders[0x583031D1113aD414F02576BD6afaBfb302140225] = true;
         stakeHolders[0xdD870fA1b7C4700F2BD7f44238821C26f7392148] = true;
         totalStakeHolders = 5;
-        methodList["updateAddress"] = true;
-        methodList["updateStakeholder"] = true;
+
 	}
 
 	function append (string memory _method, string memory _contractName) pure internal returns(string memory m){
