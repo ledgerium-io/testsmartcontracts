@@ -18,11 +18,12 @@ contract Stoppable {
 		assert(contractState);
 		_;
 	}
+	
 	constructor ( ) public {
-            methodList["updateAddress"] = true;
-            methodList["updateStakeholder"] = true;
-
-        }
+        methodList["updateAddress"] = true;
+        methodList["updateStakeholder"] = true;
+        contractState = true;
+    }
 
 	function startContract () internal returns(bool){
 		contractState = true;
@@ -42,7 +43,7 @@ contract Stoppable {
 
 	function startMethod ( string memory _methodName ) internal returns(bool){
 		assert ( contractState );
-		methodList[_methodName] = false;
+		methodList[_methodName] = true;
 		return true;
 	}
 
@@ -52,6 +53,6 @@ contract Stoppable {
 
 	function getContractStatus () public view returns(bool){
 		return contractState;
-	} 
+	}
 
 }

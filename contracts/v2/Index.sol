@@ -46,7 +46,7 @@ contract Index is MultiSigSecured,Stoppable {
 		return string( abi.encodePacked(_address) );
 	}
 
-	function createAddressUpdateProposal (string memory _contractName, address _newAddress, uint32 _minVotes) public returns (bool res){
+	function createAddressUpdateProposal (string memory _contractName, address _newAddress, uint32 _minVotes) public isActive returns (bool res){
 		assert ( stakeHolders[msg.sender] );
 		string memory _temp = append( "updateAddress-", _contractName );
 		assert ( getMethodStatus( "updateAddress" ) );
@@ -64,8 +64,9 @@ contract Index is MultiSigSecured,Stoppable {
 		return true;
 	}
 
-	function updateContractAddress (string memory _contractName, bool _decision) public returns(bool res) {
+	function updateContractAddress (string memory _contractName, bool _decision) public isActive returns(bool res) {
 		assert( stakeHolders[msg.sender] );
+		assert ( getMethodStatus( "updateAddress" ) );
 		string memory _temp = append( "updateAddress-", _contractName );
 		assert( isBallotActive( _temp ) );
 		assert( contractMapping[_contractName].status );
@@ -93,8 +94,9 @@ contract Index is MultiSigSecured,Stoppable {
 		return true;
 	}
 
-	function createStakeholderUpdate (address _newStakeholder, uint32 _minVotes, bool _decision) public returns (bool res){
+	function createStakeholderUpdate (address _newStakeholder, uint32 _minVotes, bool _decision) public isActive returns (bool res){
 		assert( stakeHolders[msg.sender] );
+		assert ( getMethodStatus( "updateStakeholder" ) );
 		string memory _temp = append( "updateStakeholder-", toString(_newStakeholder) );
 		assert( ! isBallotActive(_temp) );
 		assert( _minVotes > 1 );
@@ -112,8 +114,9 @@ contract Index is MultiSigSecured,Stoppable {
 		return true;
 	}
 
-	function updateStakeholder (address _newStakeholder, bool _decision) public returns (bool res){
+	function updateStakeholder (address _newStakeholder, bool _decision) public isActive returns (bool res){
 		assert( stakeHolders[msg.sender] );
+		assert ( getMethodStatus( "updateStakeholder" ) );
 		string memory _temp = append( "updateStakeholder-", toString(_newStakeholder) );
 		assert( isBallotActive(_temp) );
 		if ( _decision )
@@ -174,22 +177,22 @@ contract Index is MultiSigSecured,Stoppable {
 		return true;
 	}
 
-	function getAddress(string memory _contractName) public view returns(address _contractAddress){
+	function getAddress(string memory _contractName) public isActive view returns(address _contractAddress){
 		assert ( getContractStatus() );
 		return contractMapping[_contractName].currentAddress;
 	}
 
-	function pauseMethod( string memory _method ) public returns ( bool ) {
+	function pauseMethod( string memory _method ) public isActive returns ( bool ) {
 		assert( stakeHolders[msg.sender] );
 		return stopMethod( _method );
 	}
 
-	function unpauseMethod( string memory _method ) public returns (bool) {
+	function unpauseMethod( string memory _method ) public isActive returns (bool) {
 		assert (stakeHolders[msg.sender]);
 		return startMethod( _method );
 	}
 
-	function isStakeholder (address _address) public view returns(bool){
+	function isStakeholder (address _address) public isActive view returns(bool){
 		return stakeHolders[_address];
 	}
 
