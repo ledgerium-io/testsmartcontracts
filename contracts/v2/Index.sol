@@ -64,7 +64,7 @@ contract Index is MultiSigSecured,Stoppable {
 		return true;
 	}
 
-	function updateContractAddress (string memory _contractName, bool _decision) public isActive returns(bool res) {
+	function voteContractAddress (string memory _contractName, bool _decision) public isActive returns(bool res) {
 		assert( stakeHolders[msg.sender] );
 		assert ( getMethodStatus( "updateAddress" ) );
 		string memory _temp = append( "updateAddress-", _contractName );
@@ -94,13 +94,14 @@ contract Index is MultiSigSecured,Stoppable {
 		return true;
 	}
 
-	function createStakeholderUpdate (address _newStakeholder, uint32 _minVotes, bool _decision) public isActive returns (bool res){
+	function createStakeholderUpdate (address _newStakeholder, bool _decision) public isActive returns (bool res){
 		assert( stakeHolders[msg.sender] );
 		assert ( getMethodStatus( "updateStakeholder" ) );
 		string memory _temp = append( "updateStakeholder-", toString(_newStakeholder) );
 		assert( ! isBallotActive(_temp) );
-		assert( _minVotes > 1 );
-		if ( !_decision && totalStakeHolders <= 4 )
+		// assert( _minVotes > 1 );
+		uint32 _minVotes = ( totalStakeHolders / 2 ) + 1;
+		if ( !_decision && totalStakeHolders <= 5 )
 			return false; 
 		if ( _decision && totalStakeHolders >= 21 )
 			return false;
@@ -114,7 +115,7 @@ contract Index is MultiSigSecured,Stoppable {
 		return true;
 	}
 
-	function updateStakeholder (address _newStakeholder, bool _decision) public isActive returns (bool res){
+	function voteStakeholder (address _newStakeholder, bool _decision) public isActive returns (bool res){
 		assert( stakeHolders[msg.sender] );
 		assert ( getMethodStatus( "updateStakeholder" ) );
 		string memory _temp = append( "updateStakeholder-", toString(_newStakeholder) );
@@ -153,7 +154,7 @@ contract Index is MultiSigSecured,Stoppable {
 		return true;
 	}
 
-	function updatePauseProposal (bool _decision) public returns (bool){
+	function votePauseProposal (bool _decision) public returns (bool){
 		assert( stakeHolders[msg.sender] );
 		string memory STOP = "stop";
 		assert( isBallotActive(STOP) );
