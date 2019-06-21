@@ -6,6 +6,7 @@ const solc = require('solc');
 const EthereumTx = require('ethereumjs-tx');
 var keythereum = require('keythereum');
 const ethUtil = require('ethereumjs-util');
+var txDecoder = require('ethereum-tx-decoder');
 
 class utils {
     async getCurrentTime () {
@@ -165,6 +166,20 @@ class utils {
         }
     }
 
+    async decodeInputVals(transactionHash, abi, web3) {
+        try
+        {
+            var trandetails = await web3.eth.getTransaction(transactionHash);
+            const fnDecoder = new txDecoder.FunctionDecoder(abi);
+            const res = fnDecoder.decodeFn(trandetails.input);
+            return res;
+        }
+        catch (error) {
+            console.log("Error in utils.decodeInputVals(): " + error);
+            return "";
+        }    
+    }
+    
     async transferXLG(fromPrivateKey, toAddress, XLGAmount, web3) {
         try
         {
@@ -213,7 +228,7 @@ class utils {
         }
     }
 
-    async sendUnsignedTransaction (fromAccountAddress, toContractAddress, methodData, web3){
+    async sendUnsignedTransaction (fromAccountAddress, toContractAddress, methodData, web3) {
         try
         {
             var gasPrice = await web3.eth.getGasPrice();
@@ -362,18 +377,70 @@ class utils {
     }
 
     async personalImportAccount(privateKey,password){
-        var message = {
-            method: "personal_importRawKey",
-            params: [privateKey,password],
-            jsonrpc: "2.0",
-            id: new Date().getTime()
-            };
-        
-        await web3.currentProvider.send(message);
-        return;
+        var flag = false;
+        //importRawKey method does not like "0x" in the privatekeys. So need to remove if 0x is present!
+        if(privateKey.indexOf("0x") == 0) {
+            privateKey = privateKey.slice(2);
+            flag = true;
+        } else if(privateKey.indexOf("0x") == -1) { //when privatekeys are not prefixed 0x
+            flag = true;
+        } else {
+            console.log("Wrong format private key!!, This key will not be considered");
+        }
+        if(!flag)
+            return;
+        return await web3.eth.personal.importRawKey(privateKey,password);
     }
 
-    async unlockPersonalAccount(account, password){
+    getAdminPeers(url) {
+        
+        const axios = require('axios');
+        return new Promise(function (resolve, reject) {
+            let nodesList= [];
+            axios.post(url, {
+                jsonrpc: '2.0',
+                id: + new Date(),
+                method: 'admin_peers',
+                params: {
+                },
+                }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                })
+                .then(function(retValue) {
+                    if(retValue.data.result.length > 0) {
+                        for(var index = 0; index < retValue.data.result.length; index++) {
+                            let eachElement =  retValue.data.result[index];
+                            let remoteAddress = eachElement.network.remoteAddress;
+                            let valIndex = remoteAddress.indexOf(":");
+                            let ipaddress = remoteAddress.slice(0,valIndex);
+                            let port = remoteAddress.slice(valIndex+1,remoteAddress.length)
+                            let hostName = eachElement.name.slice(5,eachElement.name.length);
+                            valIndex = hostName.indexOf("/");
+                            let nodeInfo = {
+                                hostname: hostName.slice(0,valIndex),
+                                role: "addon",
+                                ipaddress:ipaddress,
+                                port:port,
+                                publickey:"",
+                                enode: eachElement.id
+                              }
+                              console.log("HostName ", nodeInfo.hostname,"\nRole ", nodeInfo.role, "\nIP Address ", nodeInfo.ipaddress, "\nPort ", nodeInfo.port, "\nPublic Key ", nodeInfo.publickey, "\nEnode ", nodeInfo.enode);
+                              nodesList.push(nodeInfo);
+                        }
+                    }
+                    resolve(nodesList);
+                })
+                .catch(function (error) {
+                    console.log(`Error occurs while getting node details : ${error}`);
+                    reject(nodesList);
+                })
+            });    
+    }
+    
+    async unlockPersonalAccount(account, password) {
         var message = {
             method: "personal_unlockAccount",
             params: [account,password],
@@ -385,7 +452,7 @@ class utils {
         return;
     }
 
-    async lockPersonalAccount(account){
+    async lockPersonalAccount(account) {
         var message = {
             method: "personal_lockAccount",
             params: [account],
@@ -398,7 +465,7 @@ class utils {
     }
 
     sleep(ms){
-        return new Promise(resolve=>{
+        return new Promise(resolve=> {
             setTimeout(resolve,ms)
         })
     }
@@ -450,11 +517,21 @@ class utils {
     async createAccountsAndManageKeysFromPrivateKeys(inputPrivateKeys){
     
         accountAddressList.length = 0;
-        let pubkey;
+        let pubkey; var flag = false;
         for(var index = 0; index < inputPrivateKeys.length; index++){
             let eachElement = inputPrivateKeys[index];
+            if(eachElement.indexOf("0x") == 0) { //when privatekeys are prefixed 0x
+                flag = true;
+            } else if(eachElement.indexOf("0x") == -1) { //when privatekeys are not prefixed 0x
+                eachElement = "0x" + eachElement;
+                flag = true;
+            } else {
+                console.log("Wrong format private key!!, This key will not be considered");
+            }
+            if(!flag)
+                continue;
             try{
-                let prvKey = ethUtil.toBuffer("0x" + eachElement);
+                let prvKey = ethUtil.toBuffer(eachElement);
                 pubkey = '0x' + ethUtil.privateToAddress(prvKey).toString('hex');
             }
             catch (error) {
@@ -474,7 +551,7 @@ class utils {
         return;
     }
       
-    async readWritePrivateKeys(){
+    async readWritePrivateKeys() {
         try{
             const password = "password";
             accountAddressList.length = 0;
@@ -529,7 +606,7 @@ class utils {
         }
     }  
     
-    async readAccountsAndKeys(){
+    async readAccountsAndKeys() {
         var privateKeyFileName = __dirname + "/keystore/" + "privatekey.json";
         if(fs.existsSync(privateKeyFileName)){
             var keyData = fs.readFileSync(privateKeyFileName,"utf8");
@@ -546,7 +623,7 @@ class utils {
         }    
     }
       
-    async writeAccountsAndKeys(){
+    async writeAccountsAndKeys() {
         var privateKeyFileName = __dirname + "/keystore/" + "privatekey.json";
         var data = JSON.stringify(privateKey,null, 2);
         fs.writeFileSync(privateKeyFileName,data);
@@ -554,7 +631,7 @@ class utils {
         return false;
     }
       
-    readContractFromConfigContracts(contractName){
+    readContractFromConfigContracts(contractName) {
         try{
             var contractFileName = __dirname + "/keystore/" + "contractsconfig.json";
             var keyData = {};
@@ -573,7 +650,7 @@ class utils {
         }
     }    
       
-    async writeContractsINConfig(contractName,contractAddress){
+    async writeContractsINConfig(contractName,contractAddress) {
         try{
             var contractFileName = __dirname + "/keystore/" + "contractsconfig.json";
             contractsList[contractName] = contractAddress;
@@ -586,7 +663,7 @@ class utils {
         }
     }
 
-    readContractsFromConfig(){
+    readContractsFromConfig() {
         try{
               var contractFileName = __dirname + "/keystore/" + "contractsconfig.json";
               var keyData = {};
