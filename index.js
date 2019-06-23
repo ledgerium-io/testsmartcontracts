@@ -155,6 +155,9 @@ var main = async function () {
                 let peerNodesfileName = temp[1];
                 await testNetworkManagerContract(peerNodesfileName);
                 break;
+            case "testNewBlockEvent":
+                await testNewBlockEvent();
+                break;
             default:
                 //throw "command should be of form :\n node deploy.js host=<host> file=<file> contracts=<c1>,<c2> dir=<dir>";
                 break;
@@ -797,6 +800,26 @@ async function testNetworkManagerContract(peerNodesfileName) {
         console.log("Details of peer index-", nodeIndex);
         console.log("HostName ", result.hostName,"\nRole ", result.role, "\nIP Address ", result.ipAddress, "\nPort ", result.port, "\nPublic Key ", result.publicKey, "\nEnode ", result.enode);
     }
+    return;
+}
+
+async function testNewBlockEvent() {
+
+    const Web3 = require('web3')
+    const web32 = new Web3(new Web3.providers.WebsocketProvider('ws://localhost:9000/'));
+    const subscription = web32.eth.subscribe('newBlockHeaders', function(error, result){
+        if (!error) {
+            console.log(result);
+            process.exit(0)
+            return;
+        }
+
+        console.error(error);
+    })
+    .on("data", function(blockHeader){
+        console.log(blockHeader);
+    })
+    .on("error", console.error);
     return;
 }
 
