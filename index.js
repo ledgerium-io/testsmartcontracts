@@ -97,6 +97,9 @@ var main = async function () {
             case "testgreeter":
                 await testGreetingContract();
                 break;
+            case "testsimplestorage":
+                await testSimpleStorageContract();
+                break;
             case "fromPubKey":
                 fromPubKey = temp[1];
                 fromPubKey+="=";
@@ -105,12 +108,22 @@ var main = async function () {
                 toPubKey = temp[1];
                 toPubKey+="=";
                 break;
-            case "testprivateTransactions":
-                let inputValues = temp[1].split(",");
-                if(inputValues.length >= 4) {
-                    await deployGreeterPrivate(inputValues[0],inputValues[1],inputValues[2],inputValues[3]);
+            case "testSimpleStoragePrivate":
+                {
+                    let inputValues = temp[1].split(",");
+                    if(inputValues.length > 3) {
+                        await deploySimpleStoragePrivate(inputValues[0],inputValues[1],inputValues[2],inputValues[3]);
+                    }    
+                    break;
                 }    
-                break;
+            case "testprivateTransactions": 
+                {
+                    let inputValues = temp[1].split(",");
+                    if(inputValues.length > 3) {
+                        await deployGreeterPrivate(inputValues[0],inputValues[1],inputValues[2],inputValues[3]);
+                    }    
+                    break;
+                }    
             case "testInvoices": {
                 let list = temp[1].split(",");
                 await testInvoicesContract(list[0],list[1]);
@@ -437,6 +450,51 @@ async function testGreetingContract() {
 
     result = await greeting.methods.getMyNumber().call({from : ethAccountToUse});
     console.log("getMyNumber after", result);
+}
+
+async function testSimpleStorageContract() {
+    
+    accountAddressList = global.accountAddressList;
+    privateKey = global.privateKey;  
+  
+    // Todo: Read ABI from dynamic source.
+    var value = utils.readSolidityContractJSON("./build/contracts/SimpleStorage");
+    if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+        return;
+    }
+    var ethAccountToUse = accountAddressList[0];
+    var deployedAddressSimpleStorage;
+    if(!usecontractconfigFlag){
+        let constructorParameters = [];
+        constructorParameters.push(101);
+        //value[0] = Contract ABI and value[1] =  Contract Bytecode
+        //var deployedAddressSimpleStorage = "0x0000000000000000000000000000000000002020";
+        let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
+        let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
+        deployedAddressSimpleStorage = transactionHash.contractAddress;
+        console.log("SimpleStorage deployedAddress ", deployedAddressSimpleStorage);
+
+        utils.writeContractsINConfig("SimpleStorage",deployedAddressSimpleStorage);
+    }
+    else{
+        deployedAddressSimpleStorage = utils.readContractFromConfigContracts("SimpleStorage");
+    }
+    
+    var simpleStorage = new web3.eth.Contract(JSON.parse(value[0]),deployedAddressSimpleStorage);
+    global.simpleStorage = simpleStorage;
+    
+    var result = await simpleStorage.methods.get().call({from : ethAccountToUse});
+    console.log("getMyNumber", result);
+    
+    let encodedABI = simpleStorage.methods.set(499).encodeABI();
+    var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedAddressSimpleStorage,encodedABI,privateKey[ethAccountToUse],web3,0);
+    console.log("TransactioHash for SimpleStorage set -", transactionObject.transactionHash);
+
+    var val = await utils.decodeInputVals(transactionObject.transactionHash,value[0],web3);
+    console.log("Input value for TransactioHash", transactionObject.transactionHash, "is", val.value);
+
+    result = await simpleStorage.methods.get().call({from : ethAccountToUse});
+    console.log("get after", result);
 }
 
 async function testInvoicesContract(invoiceID,hashVal) {
@@ -770,9 +828,28 @@ async function synchPeers() {
     accountAddressList = global.accountAddressList;
     privateKey = global.privateKey;
 
-    var nodesList = await utils.getAdminPeers(URL);
     var ethAccountToUse = global.accountAddressList[0];
 
+    const RLP = require('rlp');
+    //const mixDigestBuffer = Buffer.from([99, 116, 105, 99, 97, 108, 32, 98, 121, 122, 97, 110, 116, 105, 110, 101, 32, 102, 97, 117, 108, 116, 32, 116, 111, 108, 101, 114, 97, 110, 99, 101]);
+    const mixDigestBuffer = RLP.encode("0x63746963616c2062797a616e74696e65206661756c7420746f6c6572616e6365");
+    console.log("encoded Buffer", mixDigestBuffer);
+    console.log("The length",mixDigestBuffer.length);
+    const decodedLongString = RLP.decode(mixDigestBuffer);
+    console.log("Buffered String", decodedLongString);
+    console.log("UTF String", decodedLongString.toString('utf8'));
+    console.log("HEX String", decodedLongString.toString('hex'));
+
+    const ethUtils = require('ethereumjs-util');
+    var privkey = new Buffer(privateKey[ethAccountToUse], 'hex');
+    var data = ethUtils.sha3('Hello world');
+    var vrs = ethUtils.ecsign(data, privkey);
+    var pubkey = ethUtils.ecrecover(data, vrs.v, vrs.r, vrs.s);
+    var abcd = ethUtils.publicToAddress(pubkey).toString('hex');
+    console.log("signedTran", vrs.r.toString('hex'), "ethAccountToUse", ethAccountToUse, "\npubkey", abcd);
+
+    var nodesList = await utils.getAdminPeers(URL);
+    
     // Todo: Read ABI from dynamic source.
     var filename = __dirname + "/build/contracts/NetworkManagerContract";
     var value = utils.readSolidityContractJSON(filename);
@@ -838,7 +915,6 @@ async function deployGreeterPrivate (toPrivatePort,toPort1,otherPort1,otherPort2
     const h2 = "http://" + host + ":" + toPort1;
     const h3 = "http://" + host + ":" + otherPort1;
     const h4 = "http://" + host + ":" + otherPort2;
-    
     const toPrivateURL = "http://" + host + ":" + toPrivatePort;
 
     web31 = new Web3(new Web3.providers.HttpProvider(h1));
@@ -904,9 +980,90 @@ async function getGreeterValues(deployedAddressGreeter) {
     const contract2 = new web32.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
     const contract3 = new web33.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
     const contract4 = new web34.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
-    
     contract1.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 1")});
     contract2.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 2")});
     contract3.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 3")});
     contract4.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 4")});
+}
+
+async function deploySimpleStoragePrivate(toPrivatePort,toPort1,otherPort1,otherPort2) {
+    console.log(`${fromPubKey}`);
+    console.log(`${toPubKey}`);
+    const host1 = "138.197.193.201";
+    const host2 = "159.89.142.250";
+    const host3 = "159.203.21.124";
+    const host4 = "94.237.76.121";
+    const h1 = "http://" + host1 + ":" + port;
+    const h2 = "http://" + host2 + ":" + toPort1;
+    const h3 = "http://" + host3 + ":" + otherPort1;
+    const h4 = "http://" + host4 + ":" + otherPort2;
+    const toPrivateURL = "http://" + host1 + ":" + toPrivatePort;
+
+    web31 = new Web3(new Web3.providers.HttpProvider(h1));
+    web32 = new Web3(new Web3.providers.HttpProvider(h2));
+    web33 = new Web3(new Web3.providers.HttpProvider(h3));
+    web34 = new Web3(new Web3.providers.HttpProvider(h4));
+
+    // Todo: Read ABI from dynamic source.
+    var value = utils.readSolidityContractJSON("./build/contracts/SimpleStorage");
+    if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+        return;
+    }
+    var ethAccountToUse = global.accountAddressList[0];
+    var deployedAddressSimpleStorage;
+
+    let constructorParameters = [];
+    constructorParameters.push(123);
+    //value[0] = Contract ABI and value[1] =  Contract Bytecode
+    let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web31,constructorParameters);
+    const rawTransactionManager = quorumjs.RawTransactionManager(web31, {
+        privateUrl:toPrivateURL
+    });
+    var abcd = '0x' + global.privateKey[ethAccountToUse];
+    const txnParams = {
+        gasPrice: 0,
+        gasLimit: 4300000,
+        to: "",
+        value: 0,
+        data: encodedABI,        
+        isPrivate: true,
+        from: {
+            privateKey: abcd
+        },
+        privateFrom: fromPubKey,
+        privateFor: [toPubKey],
+        nonce: 0
+    };
+    web31.eth.getTransactionCount(ethAccountToUse, 'pending', (err, nonce) => {
+        txnParams.nonce = nonce;
+        console.log("Nonce :", nonce);
+        const newTx = rawTransactionManager.sendRawTransaction(txnParams);
+        newTx.then(function (tx){
+            deployedAddressSimpleStorage = tx.contractAddress;
+            console.log("SimpleStorage deployed contract address: ", deployedAddressSimpleStorage);
+            console.log("SimpleStorage deployed transactionHash: ", tx.transactionHash);
+            utils.writeContractsINConfig("SimpleStorage",deployedAddressSimpleStorage);
+            getSimpleStorageValues(deployedAddressSimpleStorage);
+        }).catch(function (err) {
+            console.log("error");
+            console.log(err);
+        });
+    });
+}
+
+async function getSimpleStorageValues(deployedAddressSimpleStorage) {
+    // Todo: Read ABI from dynamic source.
+    var value = utils.readSolidityContractJSON("./build/contracts/SimpleStorage");
+    if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+        return;
+    }
+    
+    const contract1 = new web31.eth.Contract(JSON.parse(value[0]),deployedAddressSimpleStorage);
+    const contract2 = new web32.eth.Contract(JSON.parse(value[0]),deployedAddressSimpleStorage);
+    const contract3 = new web33.eth.Contract(JSON.parse(value[0]),deployedAddressSimpleStorage);
+    const contract4 = new web34.eth.Contract(JSON.parse(value[0]),deployedAddressSimpleStorage);
+    contract1.methods.get().call().then(console.log).catch((err)=>{console.log("err 1")});
+    contract2.methods.get().call().then(console.log).catch((err)=>{console.log("err 2")});
+    contract3.methods.get().call().then(console.log).catch((err)=>{console.log("err 3")});
+    contract4.methods.get().call().then(console.log).catch((err)=>{console.log("err 4")});
 }

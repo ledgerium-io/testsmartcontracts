@@ -15,8 +15,11 @@
             //"args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "testLedgeriumToken"]
             //"args":["protocol=http", "hostname=localhost", "port=8545", "testPersonalImportAccount=6004b61bf9cfd681a30e1e0f3ed7be72b02df25b33041294891a12fc55f5de58,password"]
             //"args":["protocol=http", "hostname=testnet.ledgerium.net", "port=8545", "readkeyconfig=true", "usecontractconfig=true", "synchPeers"]
-            //"args":["protocol=http", "hostname=125.254.27.14", "port=8545", "readkeyconfig=true", "testgreeter"],
-            //"args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "fromPubKey=48kT1ooOru1Z7iL4XNTS8QYnfLTjSHlEvYjB2ZimRC4=", "toPubKey=wOZNzQfpFExo6J6c5r8X7750sOSD2HMjN6w8fotElg8=", "testprivateTransactions=10100,8546,8547,8548"]
+            //"args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "testgreeter"],
+            //"args":["protocol=http", "hostname=125.254.27.14", "port=8545", "readkeyconfig=true", "testsimplestorage"],
+            //"args":["protocol=http", "hostname=125.254.27.14", "port=8545", "readkeyconfig=true", "fromPubKey=xQm0SXQIIUIyGFTuDRlA/alnGHIuddBjeqVrMzwzCmM=", "toPubKey=Sj0wJqOPss1CJtvsUaMlc8fvbwH99EIyzOIm07Mxxg0=", "testprivateTransactions=10100,8546,8547,8548"]
+            //"args":["protocol=http", "hostname=138.197.193.201", "port=8545", "readkeyconfig=true", "fromPubKey=PxMiKiCVtOBu8fvf1pvO5Ioyr6cAvzSOWeg5lkv1qhM=", "toPubKey=A/jPE4jeHAsGlTSkxEQGyzJpBN4M43aKuMLUV3qlSxg=", "testSimpleStoragePrivate=10100,8546,8547,8548"]
+            //"args":["protocol=http", "hostname=testnet.ledgerium.net", "port=8545", "readkeyconfig=true", "fromPubKey=xQm0SXQIIUIyGFTuDRlA/alnGHIuddBjeqVrMzwzCmM=", "toPubKey=Sj0wJqOPss1CJtvsUaMlc8fvbwH99EIyzOIm07Mxxg0=", "testprivateTransactions=10100,8546,8547,8548,8549"]
             //"args":["protocol=http", "hostname=125.254.27.14", "port=28545", "readkeyconfig=true", "testNetworkManagerContract=../ledgeriumtools/output/tmp/nodesdetails.json"]
             "args":["protocol=ws", "hostname=localhost", "port=9000", "testNewBlockEvent"]
         }
