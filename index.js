@@ -108,13 +108,22 @@ var main = async function () {
                 toPubKey = temp[1];
                 toPubKey+="=";
                 break;
-            case "testprivateTransactions":
-                let inputValues = temp[1].split(",");
-                if(inputValues.length > 3) {
-                    //await deployGreeterPrivate(inputValues[0],inputValues[1],inputValues[2],inputValues[3]);
-                    await deploySimpleStoragePrivate(inputValues[0],inputValues[1],inputValues[2],inputValues[3]);
+            case "testSimpleStoragePrivate":
+                {
+                    let inputValues = temp[1].split(",");
+                    if(inputValues.length > 3) {
+                        await deploySimpleStoragePrivate(inputValues[0],inputValues[1],inputValues[2],inputValues[3]);
+                    }    
+                    break;
                 }    
-                break;
+            case "testprivateTransactions": 
+                {
+                    let inputValues = temp[1].split(",");
+                    if(inputValues.length > 3) {
+                        await deployGreeterPrivate(inputValues[0],inputValues[1],inputValues[2],inputValues[3]);
+                    }    
+                    break;
+                }    
             case "testInvoices": {
                 let list = temp[1].split(",");
                 await testInvoicesContract(list[0],list[1]);
@@ -875,34 +884,20 @@ async function synchPeers() {
     return;
 }
 
-var web31,web32,web33,web34,web35,web36,web37;
+var web31,web32,web33,web34;
 async function deployGreeterPrivate (toPrivatePort,toPort1,otherPort1,otherPort2) {
     console.log(`${fromPubKey}`);
     console.log(`${toPubKey}`);
-    //fromPubKey = "Qm0SXQIIUIyGFTuDRlA/alnGHIuddBjeqVrMzwzCmM="; 
-    //toPubKey = "Sj0wJqOPss1CJtvsUaMlc8fvbwH99EIyzOIm07Mxxg0=";
-    // const host1 = "178.128.235.84";
-    // const host2 = "138.68.62.196";
-    // const host3 = "134.209.191.107";
-    // const host4 = "157.230.244.236";
-    // const h1 = "http://" + host1 + ":" + port;
-    // const h2 = "http://" + host2 + ":" + toPort1;
-    // const h3 = "http://" + host3 + ":" + otherPort1;
-    // const h4 = "http://" + host4 + ":" + otherPort2;
-    // //const h5 = "http://" + host5 + ":" + otherPort3;
-    // const toPrivateURL = "http://" + host1 + ":" + toPrivatePort;
-
     const h1 = "http://" + host + ":" + port;
     const h2 = "http://" + host + ":" + toPort1;
     const h3 = "http://" + host + ":" + otherPort1;
     const h4 = "http://" + host + ":" + otherPort2;
     const toPrivateURL = "http://" + host + ":" + toPrivatePort;
-    
+
     web31 = new Web3(new Web3.providers.HttpProvider(h1));
     web32 = new Web3(new Web3.providers.HttpProvider(h2));
     web33 = new Web3(new Web3.providers.HttpProvider(h3));
     web34 = new Web3(new Web3.providers.HttpProvider(h4));
-    //web35 = new Web3(new Web3.providers.HttpProvider(h5));
 
     // Todo: Read ABI from dynamic source.
     var value = utils.readSolidityContractJSON("./build/contracts/Greeter");
@@ -962,45 +957,29 @@ async function getGreeterValues(deployedAddressGreeter) {
     const contract2 = new web32.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
     const contract3 = new web33.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
     const contract4 = new web34.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
-    //const contract5 = new web35.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
-    // const c6 = new w6.eth.Contract(abi,addr);
-    // const c7 = new w7.eth.Contract(abi,addr);
     contract1.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 1")});
     contract2.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 2")});
     contract3.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 3")});
     contract4.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 4")});
-    //contract5.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 5")});
-    // c6.methods.get().call().then(console.log).catch((err)=>{console.log("err 6")});
-    // c7.methods.get().call().then(console.log).catch((err)=>{console.log("err 7")});
 }
 
 async function deploySimpleStoragePrivate(toPrivatePort,toPort1,otherPort1,otherPort2) {
     console.log(`${fromPubKey}`);
     console.log(`${toPubKey}`);
-    //fromPubKey = "Qm0SXQIIUIyGFTuDRlA/alnGHIuddBjeqVrMzwzCmM="; 
-    //toPubKey = "Sj0wJqOPss1CJtvsUaMlc8fvbwH99EIyzOIm07Mxxg0=";
-    // const host1 = "178.128.235.84";
-    // const host2 = "138.68.62.196";
-    // const host3 = "134.209.191.107";
-    // const host4 = "157.230.244.236";
-    // const h1 = "http://" + host1 + ":" + port;
-    // const h2 = "http://" + host2 + ":" + toPort1;
-    // const h3 = "http://" + host3 + ":" + otherPort1;
-    // const h4 = "http://" + host4 + ":" + otherPort2;
-    // //const h5 = "http://" + host5 + ":" + otherPort3;
-    // const toPrivateURL = "http://" + host1 + ":" + toPrivatePort;
+    const host1 = "138.197.193.201";
+    const host2 = "159.89.142.250";
+    const host3 = "159.203.21.124";
+    const host4 = "94.237.76.121";
+    const h1 = "http://" + host1 + ":" + port;
+    const h2 = "http://" + host2 + ":" + toPort1;
+    const h3 = "http://" + host3 + ":" + otherPort1;
+    const h4 = "http://" + host4 + ":" + otherPort2;
+    const toPrivateURL = "http://" + host1 + ":" + toPrivatePort;
 
-    const h1 = "http://" + host + ":" + port;
-    const h2 = "http://" + host + ":" + toPort1;
-    const h3 = "http://" + host + ":" + otherPort1;
-    const h4 = "http://" + host + ":" + otherPort2;
-    const toPrivateURL = "http://" + host + ":" + toPrivatePort;
-    
     web31 = new Web3(new Web3.providers.HttpProvider(h1));
     web32 = new Web3(new Web3.providers.HttpProvider(h2));
     web33 = new Web3(new Web3.providers.HttpProvider(h3));
     web34 = new Web3(new Web3.providers.HttpProvider(h4));
-    //web35 = new Web3(new Web3.providers.HttpProvider(h5));
 
     // Todo: Read ABI from dynamic source.
     var value = utils.readSolidityContractJSON("./build/contracts/SimpleStorage");
@@ -1060,14 +1039,8 @@ async function getSimpleStorageValues(deployedAddressSimpleStorage) {
     const contract2 = new web32.eth.Contract(JSON.parse(value[0]),deployedAddressSimpleStorage);
     const contract3 = new web33.eth.Contract(JSON.parse(value[0]),deployedAddressSimpleStorage);
     const contract4 = new web34.eth.Contract(JSON.parse(value[0]),deployedAddressSimpleStorage);
-    //const contract5 = new web35.eth.Contract(JSON.parse(value[0]),deployedAddressSimpleStorage);
-    // const c6 = new w6.eth.Contract(abi,addr);
-    // const c7 = new w7.eth.Contract(abi,addr);
     contract1.methods.get().call().then(console.log).catch((err)=>{console.log("err 1")});
     contract2.methods.get().call().then(console.log).catch((err)=>{console.log("err 2")});
     contract3.methods.get().call().then(console.log).catch((err)=>{console.log("err 3")});
     contract4.methods.get().call().then(console.log).catch((err)=>{console.log("err 4")});
-    //contract5.methods.get().call().then(console.log).catch((err)=>{console.log("err 5")});
-    // c6.methods.get().call().then(console.log).catch((err)=>{console.log("err 6")});
-    // c7.methods.get().call().then(console.log).catch((err)=>{console.log("err 7")});
 }
