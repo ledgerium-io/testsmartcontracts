@@ -29,13 +29,12 @@ contract Index is MultiSigSecured,Stoppable {
 	uint32  public totalStakeHolders;
 
 	constructor () public {
-        stakeHolders[0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c] = true;
-        stakeHolders[0x14723A09ACff6D2A60DcdF7aA4AFf308FDDC160C] = true;
-        stakeHolders[0x4B0897b0513fdC7C541B6d9D7E929C4e5364D2dB] = true;
-        stakeHolders[0x583031D1113aD414F02576BD6afaBfb302140225] = true;
-        stakeHolders[0xdD870fA1b7C4700F2BD7f44238821C26f7392148] = true;
+        stakeHolders[0xA254BF903711A3aF580CDAF00253A701DEcD5CFA] = true;
+        stakeHolders[0x9F463aB3100F2013900eC6a1d9aEfe072435C89F] = true;
+        stakeHolders[0x25094FB021CBdCE639d96EA215966d4A05Ed229c] = true;
+        stakeHolders[0xcCf902E210E87628171211414Acc86745Ff19c90] = true;
+        stakeHolders[0x588b2ce112725D51A6d67Fa6968188bd1e4E796B] = true;
         totalStakeHolders = 5;
-
 	}
 
 	function append (string memory _method, string memory _contractName) pure internal returns(string memory m){
@@ -178,8 +177,7 @@ contract Index is MultiSigSecured,Stoppable {
 		return true;
 	}
 
-	function getAddress(string memory _contractName) public isActive view returns(address _contractAddress){
-		assert ( getContractStatus() );
+	function getAddress(string memory _contractName) public view returns(address _contractAddress){
 		return contractMapping[_contractName].currentAddress;
 	}
 
@@ -193,7 +191,7 @@ contract Index is MultiSigSecured,Stoppable {
 		return startMethod( _method );
 	}
 
-	function isStakeholder (address _address) public isActive view returns(bool){
+	function isStakeholder (address _address) public view returns(bool){
 		return stakeHolders[_address];
 	}
 

@@ -1,0 +1,306 @@
+[
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_contractName",
+				"type": "string"
+			},
+			{
+				"name": "_newAddress",
+				"type": "address"
+			},
+			{
+				"name": "_minVotes",
+				"type": "uint32"
+			}
+		],
+		"name": "createAddressUpdateProposal",
+		"outputs": [
+			{
+				"name": "res",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_minVotes",
+				"type": "uint32"
+			},
+			{
+				"name": "_decision",
+				"type": "bool"
+			}
+		],
+		"name": "createGlobalPauseProposal",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_newStakeholder",
+				"type": "address"
+			},
+			{
+				"name": "_decision",
+				"type": "bool"
+			}
+		],
+		"name": "createStakeholderUpdate",
+		"outputs": [
+			{
+				"name": "res",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_method",
+				"type": "string"
+			}
+		],
+		"name": "pauseMethod",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_method",
+				"type": "string"
+			}
+		],
+		"name": "unpauseMethod",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_contractName",
+				"type": "string"
+			},
+			{
+				"name": "_decision",
+				"type": "bool"
+			}
+		],
+		"name": "voteContractAddress",
+		"outputs": [
+			{
+				"name": "res",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_decision",
+				"type": "bool"
+			}
+		],
+		"name": "votePauseProposal",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_newStakeholder",
+				"type": "address"
+			},
+			{
+				"name": "_decision",
+				"type": "bool"
+			}
+		],
+		"name": "voteStakeholder",
+		"outputs": [
+			{
+				"name": "res",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "contractState",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_contractName",
+				"type": "string"
+			}
+		],
+		"name": "getAddress",
+		"outputs": [
+			{
+				"name": "_contractAddress",
+				"type": "address"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "getContractStatus",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_methodName",
+				"type": "string"
+			}
+		],
+		"name": "getMethodStatus",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_method",
+				"type": "string"
+			},
+			{
+				"name": "_sender",
+				"type": "address"
+			}
+		],
+		"name": "hasVoted",
+		"outputs": [
+			{
+				"name": "_decision",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_address",
+				"type": "address"
+			}
+		],
+		"name": "isStakeholder",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "totalStakeHolders",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint32"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	}
+]

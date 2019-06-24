@@ -1,0 +1,1 @@
+[{"constant":true,"inputs":[{"name":"_method","type":"string"},{"name":"_sender","type":"address"}],"name":"hasVoted","outputs":[{"name":"_decision","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"}]
