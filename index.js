@@ -111,16 +111,16 @@ var main = async function () {
             case "testSimpleStoragePrivate":
                 {
                     let inputValues = temp[1].split(",");
-                    if(inputValues.length > 3) {
-                        await deploySimpleStoragePrivate(inputValues[0],inputValues[1],inputValues[2],inputValues[3]);
+                    if(inputValues.length > 6) {
+                        await deploySimpleStoragePrivate(inputValues[0],inputValues[1],inputValues[2],inputValues[3],inputValues[4],inputValues[5],inputValues[6],inputValues[7]);
                     }    
                     break;
                 }    
             case "testprivateTransactions": 
                 {
                     let inputValues = temp[1].split(",");
-                    if(inputValues.length > 3) {
-                        await deployGreeterPrivate(inputValues[0],inputValues[1],inputValues[2],inputValues[3]);
+                    if(inputValues.length > 6) {
+                        await deployGreeterPrivate(inputValues[0],inputValues[1],inputValues[2],inputValues[3],inputValues[4],inputValues[5],inputValues[6],inputValues[7]);
                     }    
                     break;
                 }    
@@ -653,7 +653,6 @@ async function testLedgeriumToken(){
     result = await ledgeriumToken.methods.balanceOf(accountAddressList[0]).call();
     console.log("balanceOf", result, "of account",  accountAddressList[0]);
 
-    ///////////////////////////////////////////////////////////////////////////
     filename = __dirname + "/build/contracts/MultiSigWallet";
     value = utils.readSolidityContractJSON(filename);
     if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
@@ -908,13 +907,13 @@ async function synchPeers() {
 }
 
 var web31,web32,web33,web34;
-async function deployGreeterPrivate (toPrivatePort,toPort1,otherPort1,otherPort2) {
+async function deployGreeterPrivate(host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2) {
     console.log(`${fromPubKey}`);
     console.log(`${toPubKey}`);
-    const h1 = "http://" + host + ":" + port;
-    const h2 = "http://" + host + ":" + toPort1;
-    const h3 = "http://" + host + ":" + otherPort1;
-    const h4 = "http://" + host + ":" + otherPort2;
+    const h1 = "http://" + host1 + ":" + port;
+    const h2 = "http://" + host2 + ":" + toPort1;
+    const h3 = "http://" + host3 + ":" + otherPort1;
+    const h4 = "http://" + host4 + ":" + otherPort2;
     const toPrivateURL = "http://" + host + ":" + toPrivatePort;
 
     web31 = new Web3(new Web3.providers.HttpProvider(h1));
@@ -986,13 +985,10 @@ async function getGreeterValues(deployedAddressGreeter) {
     contract4.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 4")});
 }
 
-async function deploySimpleStoragePrivate(toPrivatePort,toPort1,otherPort1,otherPort2) {
+async function deploySimpleStoragePrivate(host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2) {
     console.log(`${fromPubKey}`);
     console.log(`${toPubKey}`);
-    const host1 = "138.197.193.201";
-    const host2 = "159.89.142.250";
-    const host3 = "159.203.21.124";
-    const host4 = "94.237.76.121";
+    
     const h1 = "http://" + host1 + ":" + port;
     const h2 = "http://" + host2 + ":" + toPort1;
     const h3 = "http://" + host3 + ":" + otherPort1;
