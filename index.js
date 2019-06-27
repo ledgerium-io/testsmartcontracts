@@ -158,6 +158,10 @@ var main = async function () {
             case "testNewBlockEvent":
                 await testNewBlockEvent(host,port);
                 break;
+            case "createprivatepubliccombo":
+                let mnemonic = temp[1];
+                await createprivatepubliccombo(mnemonic);
+                break;
             default:
                 //throw "command should be of form :\n node deploy.js host=<host> file=<file> contracts=<c1>,<c2> dir=<dir>";
                 break;
@@ -170,6 +174,19 @@ var main = async function () {
 }
 
 main();
+
+async function createprivatepubliccombo(mnemonic) {
+    if(!mnemonic.length) {
+        console.log("Invalid mnemonics. restart it")
+        return; 
+    }
+    const ethUtils = require('ethereumjs-util');
+    privateKey = '0x'+ethUtils.keccak(mnemonic).toString('hex');
+    var publicKey = ethUtils.privateToPublic(privateKey).toString('hex');
+    let ethAddress = ethUtils.privateToAddress(privateKey).toString('hex');
+
+    console.log("mnemonics ", mnemonic, "\nprivateKey", privateKey, "\npublicKey", publicKey, "\nethAddress", ethAddress);
+}
 
 async function deployERC20MockContract() {
 
