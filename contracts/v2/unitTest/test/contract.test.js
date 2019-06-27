@@ -9,8 +9,8 @@ const bytecode = "0x"+fs.readFileSync('../compiled/Index.bin');
 const abi      = JSON.parse( fs.readFileSync('../compiled/Index.abi'));
 
 //console.log(abi);
-const httpProvider     = 'http://localhost:8545';
-const constellationUrl = 'http://localhost:10100';
+const httpProvider     = 'http://138.197.193.201:8545';
+const constellationUrl = 'http://138.197.193.201:10100';
 
 const web3 = new Web3( new Web3.providers.HttpProvider(httpProvider) );
 const enclaveOptions = {
@@ -23,18 +23,16 @@ const positive = "positive", negative = "negative";
 const tempAddress = "0xca35b7d915458ef540ade6068dfe2f44e8fa733c";
 
 const pk = [
-	"c1b588345dc10a7aa00d3284be1f8502d762cb02f94908b487037a37ca0c64f0",
-	"27d8b19bbe8565ea536e2e32d277a0de3bfd6a77181847436ac644f06a424da1",
-	"f6afa18a1e8246356e454bf7a5b050826a178935211e09c8bf6e787566006c00",
-	"7d51e7668ed232b28cfbde90ddd7d0ff69c3f6a7b538acd7c928296d7b4e3933",
-	"21f14068009c9f7dd36ff617d2df43db38cc2dfc712b9428bb35e23ba4fe5c6e"
+	"f453a65736d84f0da1c4c725ca8918af1bf4a1f76f48da59899f3cc5d3cdc610",
+	"67e0376bc9566b1f769ce1e5b9a95e101278958e62e81aae4cc0489914a7b5c7",
+	"b215b7580e0ceec6dac6a80923de3474ec47153df96010eca11eddbd3fcdfb12",
+	"a18b027102396e6ba57e341c869b8d7a395cacf529339a9fc4b38e122783401a"
 ];
 const accountAddresses = [
-	"0xA254BF903711A3aF580CDAF00253A701DEcD5CFA",
-	"0x9f463ab3100f2013900ec6a1d9aefe072435c89f",
-	"0x25094fb021cbdce639d96ea215966d4a05ed229c",
-	"0xccf902e210e87628171211414acc86745ff19c90",
-	"0x588b2ce112725d51a6d67fa6968188bd1e4e796b"
+	"0x2fc6991e16308104cf15130ea92a87066bc4dfb1",
+	"0xc3431d5aff62832e0e56234f327b92cf4875fba5",
+	"0xb701b51e22b66d6dcab7b748c5cec32bf52d5535",
+	"0x56ea4b5a3a88484176d30616b5224a0ad3184da5"
 ];
 
 const getReceipt = (hash, callback, receipt) => {
