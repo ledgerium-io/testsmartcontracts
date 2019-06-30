@@ -29,11 +29,11 @@ contract Index is MultiSigSecured,Stoppable {
 	uint32  public totalStakeHolders;
 
 	constructor () public {
-        stakeHolders[0xA254BF903711A3aF580CDAF00253A701DEcD5CFA] = true;
-        stakeHolders[0x9F463aB3100F2013900eC6a1d9aEfe072435C89F] = true;
-        stakeHolders[0x25094FB021CBdCE639d96EA215966d4A05Ed229c] = true;
-        stakeHolders[0xcCf902E210E87628171211414Acc86745Ff19c90] = true;
-        stakeHolders[0x588b2ce112725D51A6d67Fa6968188bd1e4E796B] = true;
+        stakeHolders[0x1a67eeA756B9c074219dBBd1a68b7A6919412645] = true;
+        stakeHolders[0xcB680d316b281AEbB68e73E813b7a53Ec93c8F05] = true;
+        stakeHolders[0xc1836760988668eeA5275CD562755eC0B82CeF92] = true;
+        stakeHolders[0x86DC44A5Ae35A09a62585F2e3dE29F14DcE2fF2C] = true;
+        stakeHolders[0x4C52E9A49541273F9A8C16B367Eba30aeaB10db0] = true;
         totalStakeHolders = 5;
 	}
 
