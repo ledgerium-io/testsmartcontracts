@@ -16,8 +16,9 @@
     "chai-bignumber": "^2.0.2"
   },
   "dependencies": {
+    "assert": "^2.0.0",
     "async": "2.6.1",
-    "axios": "^0.18.0",
+    "axios": "^0.19.0",
     "big-number": "^1.0.0",
     "ethereum-tx-decoder": "^2.0.1",
     "ethereumjs-util": "6.1.0",
@@ -27,7 +28,12 @@
     "mocha": "6.1.4",
     "moment": "^2.22.2",
     "promise": "7.1.1",
+<<<<<<< HEAD
     "quorum-js": "0.3.0",
+=======
+    "quorum-js": "^0.2.0",
+    "rlp": "^2.2.3",
+>>>>>>> master
     "solc": "^0.4.25",
     "truffle-hdwallet-provider": "0.0.6",
     "web3": "^1.0.0-beta.36",

@@ -97,6 +97,9 @@ var main = async function () {
             case "testgreeter":
                 await testGreetingContract();
                 break;
+            case "testsimplestorage":
+                await testSimpleStorageContract();
+                break;
             case "fromPubKey":
                 fromPubKey = temp[1];
                 fromPubKey+="=";
@@ -105,15 +108,22 @@ var main = async function () {
                 toPubKey = temp[1];
                 toPubKey+="=";
                 break;
-            case "testprivateTransactions":
+            case "testSimpleStoragePrivate":
+                {
+                    let inputValues = temp[1].split(",");
+                    if(inputValues.length > 6) {
+                        await deploySimpleStoragePrivate(inputValues[0],inputValues[1],inputValues[2],inputValues[3],inputValues[4],inputValues[5],inputValues[6],inputValues[7]);
+                    }    
+                    break;
+                }    
+            case "testprivateTransactions": 
                 {
                     let inputValues = temp[1].split(",");
                     if(inputValues.length > 6) {
                         await deployGreeterPrivate(inputValues[0],inputValues[1],inputValues[2],inputValues[3],inputValues[4],inputValues[5],inputValues[6],inputValues[7]);
                     }    
                     break;
-                }      
-                break;
+                }    
             case "testInvoices": {
                 let list = temp[1].split(",");
                 await testInvoicesContract(list[0],list[1]);
@@ -145,6 +155,13 @@ var main = async function () {
                 let peerNodesfileName = temp[1];
                 await testNetworkManagerContract(peerNodesfileName);
                 break;
+            case "testNewBlockEvent":
+                await testNewBlockEvent(host,port);
+                break;
+            case "createprivatepubliccombo":
+                let mnemonic = temp[1];
+                await createprivatepubliccombo(mnemonic);
+                break;
             default:
                 //throw "command should be of form :\n node deploy.js host=<host> file=<file> contracts=<c1>,<c2> dir=<dir>";
                 break;
@@ -157,6 +174,19 @@ var main = async function () {
 }
 
 main();
+
+async function createprivatepubliccombo(mnemonic) {
+    if(!mnemonic.length) {
+        console.log("Invalid mnemonics. restart it")
+        return; 
+    }
+    const ethUtils = require('ethereumjs-util');
+    privateKey = '0x'+ethUtils.keccak(mnemonic).toString('hex');
+    var publicKey = ethUtils.privateToPublic(privateKey).toString('hex');
+    let ethAddress = ethUtils.privateToAddress(privateKey).toString('hex');
+
+    console.log("mnemonics ", mnemonic, "\nprivateKey", privateKey, "\npublicKey", publicKey, "\nethAddress", ethAddress);
+}
 
 async function deployERC20MockContract() {
 
@@ -439,6 +469,51 @@ async function testGreetingContract() {
     console.log("getMyNumber after", result);
 }
 
+async function testSimpleStorageContract() {
+    
+    accountAddressList = global.accountAddressList;
+    privateKey = global.privateKey;  
+  
+    // Todo: Read ABI from dynamic source.
+    var value = utils.readSolidityContractJSON("./build/contracts/SimpleStorage");
+    if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+        return;
+    }
+    var ethAccountToUse = accountAddressList[0];
+    var deployedAddressSimpleStorage;
+    if(!usecontractconfigFlag){
+        let constructorParameters = [];
+        constructorParameters.push(101);
+        //value[0] = Contract ABI and value[1] =  Contract Bytecode
+        //var deployedAddressSimpleStorage = "0x0000000000000000000000000000000000002020";
+        let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
+        let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
+        deployedAddressSimpleStorage = transactionHash.contractAddress;
+        console.log("SimpleStorage deployedAddress ", deployedAddressSimpleStorage);
+
+        utils.writeContractsINConfig("SimpleStorage",deployedAddressSimpleStorage);
+    }
+    else{
+        deployedAddressSimpleStorage = utils.readContractFromConfigContracts("SimpleStorage");
+    }
+    
+    var simpleStorage = new web3.eth.Contract(JSON.parse(value[0]),deployedAddressSimpleStorage);
+    global.simpleStorage = simpleStorage;
+    
+    var result = await simpleStorage.methods.get().call({from : ethAccountToUse});
+    console.log("getMyNumber", result);
+    
+    let encodedABI = simpleStorage.methods.set(499).encodeABI();
+    var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedAddressSimpleStorage,encodedABI,privateKey[ethAccountToUse],web3,0);
+    console.log("TransactioHash for SimpleStorage set -", transactionObject.transactionHash);
+
+    var val = await utils.decodeInputVals(transactionObject.transactionHash,value[0],web3);
+    console.log("Input value for TransactioHash", transactionObject.transactionHash, "is", val.value);
+
+    result = await simpleStorage.methods.get().call({from : ethAccountToUse});
+    console.log("get after", result);
+}
+
 async function testInvoicesContract(invoiceID,hashVal) {
     
     accountAddressList = global.accountAddressList;
@@ -595,7 +670,6 @@ async function testLedgeriumToken(){
     result = await ledgeriumToken.methods.balanceOf(accountAddressList[0]).call();
     console.log("balanceOf", result, "of account",  accountAddressList[0]);
 
-    ///////////////////////////////////////////////////////////////////////////
     filename = __dirname + "/build/contracts/MultiSigWallet";
     value = utils.readSolidityContractJSON(filename);
     if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
@@ -745,14 +819,52 @@ async function testNetworkManagerContract(peerNodesfileName) {
     return;
 }
 
+async function testNewBlockEvent(host, port) {
+
+    const h1 = protocol + host + ":" + port;
+    const web32 = new Web3(new Web3.providers.WebsocketProvider(h1));
+    web32.eth.subscribe('newBlockHeaders', function(error, result){
+        if (!error) {
+            console.log(result);
+            process.exit(0)
+            return;
+        }
+        console.error(error);
+    })
+    // .on("data", function(blockHeader){
+    //     console.log(blockHeader);
+    // })
+    // .on("error", console.error);
+    return;
+}
+
 async function synchPeers() {
 
     accountAddressList = global.accountAddressList;
     privateKey = global.privateKey;
 
-    var nodesList = await utils.getAdminPeers(URL);
     var ethAccountToUse = global.accountAddressList[0];
 
+    const RLP = require('rlp');
+    //const mixDigestBuffer = Buffer.from([99, 116, 105, 99, 97, 108, 32, 98, 121, 122, 97, 110, 116, 105, 110, 101, 32, 102, 97, 117, 108, 116, 32, 116, 111, 108, 101, 114, 97, 110, 99, 101]);
+    const mixDigestBuffer = RLP.encode("0x63746963616c2062797a616e74696e65206661756c7420746f6c6572616e6365");
+    console.log("encoded Buffer", mixDigestBuffer);
+    console.log("The length",mixDigestBuffer.length);
+    const decodedLongString = RLP.decode(mixDigestBuffer);
+    console.log("Buffered String", decodedLongString);
+    console.log("UTF String", decodedLongString.toString('utf8'));
+    console.log("HEX String", decodedLongString.toString('hex'));
+
+    const ethUtils = require('ethereumjs-util');
+    var privkey = new Buffer(privateKey[ethAccountToUse], 'hex');
+    var data = ethUtils.sha3('Hello world');
+    var vrs = ethUtils.ecsign(data, privkey);
+    var pubkey = ethUtils.ecrecover(data, vrs.v, vrs.r, vrs.s);
+    var abcd = ethUtils.publicToAddress(pubkey).toString('hex');
+    console.log("signedTran", vrs.r.toString('hex'), "ethAccountToUse", ethAccountToUse, "\npubkey", abcd);
+
+    var nodesList = await utils.getAdminPeers(URL);
+    
     // Todo: Read ABI from dynamic source.
     var filename = __dirname + "/build/contracts/NetworkManagerContract";
     var value = utils.readSolidityContractJSON(filename);
