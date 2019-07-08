@@ -45,10 +45,30 @@ library SafeMath {
   }
 
   /**
+  * @dev Subtracts two numbers, reverts on overflow (i.e. if subtrahend is greater than minuend).
+  */
+  function sub32(uint32 a, uint32 b) internal pure returns (uint32) {
+    require(b <= a);
+    uint32 c = a - b;
+
+    return c;
+  }
+
+  /**
   * @dev Adds two numbers, reverts on overflow.
   */
   function add(uint256 a, uint256 b) internal pure returns (uint256) {
     uint256 c = a + b;
+    require(c >= a);
+
+    return c;
+  }
+
+  /**
+  * @dev Adds two numbers, reverts on overflow.
+  */
+  function add32(uint32 a, uint32 b) internal pure returns (uint32) {
+    uint32 c = a + b;
     require(c >= a);
 
     return c;

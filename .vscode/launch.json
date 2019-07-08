@@ -15,15 +15,14 @@
             //"args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "testLedgeriumToken"]
             //"args":["protocol=http", "hostname=localhost", "port=8545", "testPersonalImportAccount=6004b61bf9cfd681a30e1e0f3ed7be72b02df25b33041294891a12fc55f5de58,password"]
             //"args":["protocol=http", "hostname=testnet.ledgerium.net", "port=8545", "readkeyconfig=true", "usecontractconfig=true", "synchPeers"]
-            //"args":["protocol=http", "hostname=localhost", "port=8545", "readkeyconfig=true", "testgreeter"],
-            //"args":["protocol=http", "hostname=125.254.27.14", "port=8545", "readkeyconfig=true", "testsimplestorage"],
-            //"args":["protocol=http", "hostname=125.254.27.14", "port=8545", "readkeyconfig=true", "fromPubKey=xQm0SXQIIUIyGFTuDRlA/alnGHIuddBjeqVrMzwzCmM=", "toPubKey=Sj0wJqOPss1CJtvsUaMlc8fvbwH99EIyzOIm07Mxxg0=", "testprivateTransactions=10100,8546,8547,8548"]
-            //"args":["protocol=http", "hostname=138.197.193.201", "port=8545", "readkeyconfig=true", "fromPubKey=PxMiKiCVtOBu8fvf1pvO5Ioyr6cAvzSOWeg5lkv1qhM=", "toPubKey=A/jPE4jeHAsGlTSkxEQGyzJpBN4M43aKuMLUV3qlSxg=", "testSimpleStoragePrivate=138.197.193.201,159.89.142.250,159.203.21.124,94.237.76.121,10100,8546,8547,8548"]
-            //"args":["protocol=http", "hostname=138.197.193.201", "port=8545", "readkeyconfig=true", "fromPubKey=xQm0SXQIIUIyGFTuDRlA/alnGHIuddBjeqVrMzwzCmM=", "toPubKey=Sj0wJqOPss1CJtvsUaMlc8fvbwH99EIyzOIm07Mxxg0=", "testprivateTransactions=138.197.193.201,159.89.142.250,159.203.21.124,94.237.76.121,10100,8546,8547,8548,8549"]
+            //"args":["protocol=http", "hostname=125.254.27.14", "port=8545", "readkeyconfig=true", "testgreeter"],
+            //"args":["protocol=http", "hostname=138.197.193.201", "port=8545", "readkeyconfig=true", "fromPubKey=NHmYPJHp4OA9TH6Cgod8CTV+eCRuHkeM0wj3L4fk8xs=", "toPubKey=cBYY4b9+yu053Zr2Bx13SAIfvt+5HQ9jdwxtnGJMT0Y=", "testprivateTransactions=138.197.193.201,159.89.142.250,159.203.21.124,94.237.76.121,10100,8545,8545,8545"]
             //"args":["protocol=http", "hostname=125.254.27.14", "port=28545", "readkeyconfig=true", "testNetworkManagerContract=../ledgeriumtools/output/tmp/nodesdetails.json"]
-            //"args":["protocol=ws", "hostname=125.254.27.14", "port=28545", "readkeyconfig=true", "testgreeter"],
+            "args":["protocol=ws", "hostname=125.254.27.14", "port=28545", "readkeyconfig=true", "testgreeter"],
+            //"args":["protocol=ws", "hostname=125.254.27.14", "port=28545", "readkeyconfig=true", "testsimplestorage"],
             //"args":["protocol=ws", "hostname=138.197.193.201", "port=9000", "readkeyconfig=true", "testNewBlockEvent"],
-            "args":["createprivatepubliccombo=I am Ledgerium Validator 4"]
+            //"args":["protocol=http", "hostname=138.197.193.201", "port=8545", "readkeyconfig=true", "fromPubKey=NHmYPJHp4OA9TH6Cgod8CTV+eCRuHkeM0wj3L4fk8xs=", "toPubKey=cBYY4b9+yu053Zr2Bx13SAIfvt+5HQ9jdwxtnGJMT0Y=", "testSimpleStoragePrivate=138.197.193.201,159.89.142.250,159.203.21.124,94.237.76.121,10100,8545,8545,8545"]
+            //"args":["createprivatepubliccombo=I am Ledgerium Validator 4"]
         }
     ]
 }
