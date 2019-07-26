@@ -124,6 +124,14 @@ var main = async function () {
                     }    
                     break;
                 }    
+            case "transactOnPrivateContract": 
+                {
+                    let inputValues = temp[1].split(",");
+                    if(inputValues.length > 6) {
+                        await setGreeterValues(inputValues[0],inputValues[1],inputValues[2],inputValues[3],inputValues[4],inputValues[5],inputValues[6],inputValues[7],inputValues[8]);
+                    }    
+                    break;
+                }    
             case "testInvoices": {
                 let list = temp[1].split(",");
                 await testInvoicesContract(list[0],list[1]);
@@ -847,6 +855,18 @@ async function synchPeers() {
 
     const RLP = require('rlp');
     //const mixDigestBuffer = Buffer.from([99, 116, 105, 99, 97, 108, 32, 98, 121, 122, 97, 110, 116, 105, 110, 101, 32, 102, 97, 117, 108, 116, 32, 116, 111, 108, 101, 114, 97, 110, 99, 101]);
+    const myString = "ctical byzantine fault tolerance"
+    console.log("String", myString);
+    console.log("HEX String", myString.toString("hex"));
+    const myStringEncodedBuffer = RLP.encode(myString.toString("hex"));
+    console.log("myStringEncodedBuffer String", myStringEncodedBuffer);
+    console.log("The length of myStringEncodedBuffer",myStringEncodedBuffer.length);
+    const myStringDecodedLongString = RLP.decode(myStringEncodedBuffer);
+    console.log("Buffered Decoded String", myStringDecodedLongString);
+    console.log("The length of myStringDecodedLongString",myStringEncodedBuffer.length);
+    console.log("UTF String", myStringEncodedBuffer.toString('utf8'));
+    console.log("HEX String", myStringEncodedBuffer.toString('hex'));
+
     const mixDigestBuffer = RLP.encode("0x63746963616c2062797a616e74696e65206661756c7420746f6c6572616e6365");
     console.log("encoded Buffer", mixDigestBuffer);
     console.log("The length",mixDigestBuffer.length);
@@ -855,13 +875,24 @@ async function synchPeers() {
     console.log("UTF String", decodedLongString.toString('utf8'));
     console.log("HEX String", decodedLongString.toString('hex'));
 
-    const ethUtils = require('ethereumjs-util');
-    var privkey = new Buffer(privateKey[ethAccountToUse], 'hex');
-    var data = ethUtils.sha3('Hello world');
-    var vrs = ethUtils.ecsign(data, privkey);
-    var pubkey = ethUtils.ecrecover(data, vrs.v, vrs.r, vrs.s);
-    var abcd = ethUtils.publicToAddress(pubkey).toString('hex');
-    console.log("signedTran", vrs.r.toString('hex'), "ethAccountToUse", ethAccountToUse, "\npubkey", abcd);
+    try {
+        const ethUtils = require('ethereumjs-util');
+        var privkey = new Buffer("4646464646464646464646464646464646464646464646464646464646464646");
+        var signingdata = "0xec098504a817c800825208943535353535353535353535353535353535353535880de0b6b3a764000080018080";
+        var signingHash = ethUtils.sha3(signingdata);
+        //var pubkey = ethUtils.ecrecover(data, vrs.v, vrs.r, vrs.s);
+        var vrs = ethUtils.ecsign(signingHash, privkey);
+        console.log("vrs.v, vrs.r, vrs.s", vrs.v, vrs.r, vrs.s);
+    } catch (exception) {
+        console.log(`${exception}`)
+    }    
+
+    // var privkey = new Buffer(privateKey[ethAccountToUse], 'hex');
+    // var data = ethUtils.sha3('Hello world');
+    // var vrs = ethUtils.ecsign(data, privkey);
+    // var pubkey = ethUtils.ecrecover(data, vrs.v, vrs.r, vrs.s);
+    // var abcd = ethUtils.publicToAddress(pubkey).toString('hex');
+    // console.log("signedTran", vrs.r.toString('hex'), "ethAccountToUse", ethAccountToUse, "\npubkey", abcd);
 
     var nodesList = await utils.getAdminPeers(URL);
     
@@ -953,8 +984,9 @@ async function deployGreeterPrivate(host1, host2, host3, host4, toPrivatePort, t
         privateUrl:toPrivateURL
     });
     var abcd = '0x' + global.privateKey[ethAccountToUse];
+    var gasPrice = await web3.eth.getGasPrice();
     const txnParams = {
-        gasPrice: 0,
+        gasPrice: web3.utils.toHex(gasPrice),
         gasLimit: 4300000,
         to: "",
         value: 0,
@@ -977,10 +1009,80 @@ async function deployGreeterPrivate(host1, host2, host3, host4, toPrivatePort, t
             console.log("Greeter deployed transactionHash: ", tx.transactionHash);
             utils.writeContractsINConfig("Greeter",deployedAddressGreeter);
             getGreeterValues(deployedAddressGreeter);
+            //setGreeterValues(deployedAddressGreeter,host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2);
         }).catch(function (err) {
             console.log("error");
             console.log(err);
         });
+    });
+}
+
+async function setGreeterValues(host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2, deployedAddressGreeter) {
+
+    if(!usecontractconfigFlag && !deployedAddressGreeter) {
+        deployGreeterPrivate(host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2);
+        deployedAddressGreeter = utils.readContractFromConfigContracts("Greeter");
+        if(deployedAddressGreeter == "") {
+            console.log("deployedAddressGreeter is undefined in contracts config")
+            return;
+        }
+    }
+    
+    console.log(`${fromPubKey}`);
+    console.log(`${toPubKey}`);
+    const h1 = "http://" + host1 + ":" + port;
+    const h2 = "http://" + host2 + ":" + toPort1;
+    const h3 = "http://" + host3 + ":" + otherPort1;
+    const h4 = "http://" + host4 + ":" + otherPort2;
+    const toPrivateURL = "http://" + host + ":" + toPrivatePort;
+
+    web31 = new Web3(new Web3.providers.HttpProvider(h1));
+    web32 = new Web3(new Web3.providers.HttpProvider(h2));
+    web33 = new Web3(new Web3.providers.HttpProvider(h3));
+    web34 = new Web3(new Web3.providers.HttpProvider(h4));    
+    // Todo: Read ABI from dynamic source.
+    var value = utils.readSolidityContractJSON("./build/contracts/Greeter");
+    if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+        return;
+    }
+    
+    const contract1 = new web31.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
+    // const contract2 = new web32.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
+    // const contract3 = new web33.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
+    // const contract4 = new web34.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
+
+    var ethAccountToUse = global.accountAddressList[0];
+    var encodedABI = contract1.methods.setMyNumber(316).encodeABI();
+    //value[0] = Contract ABI and value[1] =  Contract Bytecode
+    const rawTransactionManager = quorumjs.RawTransactionManager(web31, {
+        privateUrl:toPrivateURL
+    });
+    var abcd = '0x' + global.privateKey[ethAccountToUse];
+    var gasPrice = await web3.eth.getGasPrice();
+    const txnParams = {
+        gasPrice: web3.utils.toHex(gasPrice),
+        gasLimit: 4300000,
+        to: deployedAddressGreeter,
+        value: 0,
+        data: encodedABI,        
+        isPrivate: true,
+        from: {
+            privateKey: abcd
+        },
+        privateFrom: fromPubKey,
+        privateFor: [toPubKey],
+        nonce: 0
+    };
+    let nonceToUse = await web3.eth.getTransactionCount(ethAccountToUse, 'pending');
+    console.log("Nonce :", nonceToUse);
+    txnParams.nonce = nonceToUse;
+    const newTx = rawTransactionManager.sendRawTransaction(txnParams);
+    newTx.then(function (tx){
+        console.log("Greeter setMyNumber transactionHash: ", tx.transactionHash);
+        getGreeterValues(deployedAddressGreeter);
+    }).catch(function (err) {
+        console.log("error");
+        console.log(err);
     });
 }
 
@@ -995,10 +1097,40 @@ async function getGreeterValues(deployedAddressGreeter) {
     const contract2 = new web32.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
     const contract3 = new web33.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
     const contract4 = new web34.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
-    contract1.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 1")});
-    contract2.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 2")});
-    contract3.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 3")});
-    contract4.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 4")});
+
+    // contract1.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 1")});
+    // contract2.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 2")});
+    // contract3.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 3")});
+    // contract4.methods.getMyNumber().call().then(console.log).catch((err)=>{console.log("err 4")});
+    
+    contract1.methods.getMyNumber().call().then(function (val, error) {
+        if(!error)
+            console.log(val);
+        else {
+            console.log("error 1",error);
+        }
+    });
+    contract2.methods.getMyNumber().call().then(function (val, error) {
+        if(!error)
+            console.log(val);
+        else {
+            console.log("error 2",error);
+        }
+    });
+    contract3.methods.getMyNumber().call().then(function (val, error) {
+        if(!error)
+            console.log(val);
+        else {
+            console.log("error 3",error);
+        }
+    });
+    contract4.methods.getMyNumber().call().then(function (val, error) {
+        if(!error)
+            console.log(val);
+        else {
+            console.log("error 4",error);
+        }
+    });
 }
 
 async function deploySimpleStoragePrivate(host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2) {
@@ -1074,8 +1206,32 @@ async function getSimpleStorageValues(deployedAddressSimpleStorage) {
     const contract2 = new web32.eth.Contract(JSON.parse(value[0]),deployedAddressSimpleStorage);
     const contract3 = new web33.eth.Contract(JSON.parse(value[0]),deployedAddressSimpleStorage);
     const contract4 = new web34.eth.Contract(JSON.parse(value[0]),deployedAddressSimpleStorage);
-    contract1.methods.get().call().then(console.log).catch((err)=>{console.log("err 1")});
-    contract2.methods.get().call().then(console.log).catch((err)=>{console.log("err 2")});
-    contract3.methods.get().call().then(console.log).catch((err)=>{console.log("err 3")});
-    contract4.methods.get().call().then(console.log).catch((err)=>{console.log("err 4")});
+    contract1.methods.get().call().then(function (val, error) {
+        if(!error)
+            console.log(val);
+        else {
+            console.log("error 1",error);
+        }
+    });
+    contract2.methods.get().call().then(function (val, error) {
+        if(!error)
+            console.log(val);
+        else {
+            console.log("error 2",error);
+        }
+    });
+    contract3.methods.get().call().then(function (val, error) {
+        if(!error)
+            console.log(val);
+        else {
+            console.log("error 3",error);
+        }
+    });
+    contract4.methods.get().call().then(function (val, error) {
+        if(!error)
+            console.log(val);
+        else {
+            console.log("error 4",error);
+        }
+    });
 }
