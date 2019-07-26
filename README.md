@@ -1,22 +1,107 @@
-# testsmartcontracts
-This repo is created to test smart contracts without using truffle for deploying and testing our smart contract
+# **Getting Started**
+This repo is created to run various testcases on Ledgerium Blockchain on smart contracts using web3js which includes deployment and executing transactions.
 
-## Getting Started
-This project 
-
-### Clone the repo and install the project
+## **Clone the repo and install the project**
 - git clone https://github.com/ledgerium/testsmartcontracts.git 
 - cd testsmartcontracts
-
-### Smart Contracts are precompiled with command
-- solc --overwrite --gas --bin --abi --optimize-runs=200 -o ./build/contracts ./contracts/contractname.sol
-- Output files contractname.bin and contractname.abi are available in ./build/contracts folder. If not existing, program will exist with "file not found!" error
-
-### Run the smart contracts
 - npm install
-- node index.js hostname=localhost port=8545 readkeyconfig=true testgreeter
-- node index.js rinkeby readkeyconfig=true deployERC20Mock
-- node index.js protocol=http hostname=localhost port=8545 readkeyconfig=true testInvoices=0x1234,790afdeb16ae5c22453f8eeee25038c314f09d64fc51b8e21a5a82225e54fde6
-- node index.js protocol=http hostname=138.197.193.201 port=8545 readkeyconfig=true testgreeter
-- node index.js protocol=http hostname=138.197.193.201 port=8545 readkeyconfig=true fromPubKey=NHmYPJHp4OA9TH6Cgod8CTV+eCRuHkeM0wj3L4fk8xs= toPubKey=cBYY4b9+yu053Zr2Bx13SAIfvt+5HQ9jdwxtnGJMT0Y= testprivateTransactions=138.197.193.201,159.89.142.250,159.203.21.124,94.237.76.121,10100,8545,8545,8545
-- node index.js protocol=ws hostname=138.197.193.201 port=9000 testNewBlockEvent
+
+### **Specifications**
+The testsmartcontract can be used with different switches
+
+**protocol**
+- ws
+- http
+
+**hostname**
+- localhost
+- XXX.XXX.XXX.XXX
+
+**port**
+- e.g. 9000 for Websocket
+- e.g. 8545 for http
+
+**readkeyconfig**
+- if keystore\privatekey.json needs to be used for accounts and respective their private keys
+
+### **Run the tests - Usages**
+- **Deploy ERC20Mock smart contract on Ethereum testnet Rinkeby**  
+  ```
+  node index.js rinkeby readkeyconfig=true deployERC20Mock
+  ```
+
+- **Deploy LedgeriumToken ERC20 smart contract on Ledgerium Blockchain**
+  ```
+  node index.js protocol=<http/ws> hostname=<masternode node ip address> port=<rpc/ws port> readkeyconfig=true testLedgeriumToken
+  ```
+
+- **Add Invoice hash to Invoice smart contract on Ledgerium Blockchain**
+  ```
+  node index.js protocol=<http/ws> hostname=<masternode node ip address> port=<rpc/ws port> readkeyconfig=true testInvoices=<InvoiceID>,<Invoice Hash>
+  ```
+
+- **Transfer XLG from one account to another account on Ledgerium Blockchain**
+  ```
+  node index.js protocol=<http/ws> hostname=<masternode ip address> port=<rpc/ws port> transferXLG=<private key of 'from' account>,<to account address>,<XLG amount>
+  ```
+
+- **Import account to the given masternode of Ledgerium Blockchain**
+  ```
+  node index.js protocol=<http/ws> hostname=<masternode node ip address> port=<rpc/ws port> testPersonalImportAccount=<private key> <password>
+  ```
+
+- **Deploy Greeter smart contract on Ledgerium Blockchain**
+  ```
+  node index.js protocol=<http/ws> hostname=<masternode node ip address> port=<rpc/ws port> readkeyconfig=true testgreeter
+  ```
+
+- **Deploy SimpleStorage smart contract on Ledgerium Blockchain**
+  ```
+  node index.js protocol=<http/ws> hostname=<ledgeriumcore node ip address> port=<rpc/ws port> readkeyconfig=true testsimplestorage
+  ```
+
+- **Deploy Greeter smart contract in private transaction between Node 'from' and Node 'to' on Ledgerium Blockchain**
+  ```
+  node index.js protocol=<http/ws> hostname=<masternode node ip address> port=<rpc/ws port> readkeyconfig=true fromPubKey=<public key of 'from' node> toPubKey=<public key of 'to' node> testprivateTransactions=<From Node>,<To Node>,<Node1>,<Node2>,<tessera third party port of 'from' node>,<RPC Port To Node>,<RPC Port Node1>,<RPC Port Node2>
+  ```
+
+- **Deploy SimpleStorage smart contract in private transaction between Node 'from' and Node 'to' on Ledgerium Blockchain**
+  ```
+  node index.js protocol=<http/ws> hostname=<masternode node ip address> port=<rpc/ws port> readkeyconfig=true fromPubKey=<public key of 'from' node> toPubKey=<public key of 'to' node> testSimpleStoragePrivate=<From Node>,<To Node>,<Node1>,<Node2>,<tessera third party port of 'from' node>,<RPC Port To Node>,<RPC Port Node1>,<RPC Port Node2>
+  ```
+
+- **Deploy Greeter smart contract in private transaction between Node 'from' and Node 'to' and run setMyNumber on Ledgerium Blockchain**
+  ```
+  node index.js protocol=<http/ws> hostname=<masternode node ip address> port=<rpc/ws port> readkeyconfig=true fromPubKey=<public key of 'from' node> toPubKey=<public key of 'to' node> transactOnPrivateContract=<From Node>,<To Node>,<Node1>,<Node2>,<tessera third party port of 'from' node>,<RPC Port To Node>,<RPC Port Node1>,<RPC Port Node2>, <Greeter smart contract address on ledgerium blockchain> 
+  ```
+
+- **Special test scenario to add new node entries in networkmanager contract on Ledgerium Blockchain reading from nodesdetails json**
+  ```
+  node index.js protocol=<http/ws> hostname=<ledgeriumcore node ip address> port=<rpc/ws port> readkeyconfig=true testNetworkManagerContract=<nodesdetails.json>
+  ```
+
+- **Special test scenario to bring no of peer nodes of the given masternode to no of node in networkmanager contract on Ledgerium Blockchain**
+  ```
+  node index.js protocol=<http/ws> hostname=<ledgeriumcore node ip address> port=<rpc/ws port> readkeyconfig=true usecontractconfig=true synchPeers 
+  ```
+
+- **Subscribe the 'newBlockHeaders' event on Ledgerium Blockchain**
+  ```
+  node index.js protocol=<http/ws> hostname=<ledgeriumcore node ip address> port=<rpc/ws port> readkeyconfig=true testNewBlockEvent
+  ```
+
+- **Generate the public/private key combination against input of mnemonics on Ledgerium Blockchain**
+  ```
+  node index.js createprivatepubliccombo=<mnemonics string>
+  ``` 
+
+## **Additional:**
+### **Smart Contracts are compiled with following commands**  
+### **Solidity compiler to compile smart contract, to be deployed and transact**
+- solc --overwrite --gas --bin --abi --optimize-runs=200 -o ./build/contracts ./contracts/contractname.sol
+- Output files contractname.bin and contractname.abi are available in ./build/contracts folder. If file does not exist, program will throw "file not found!" error
+
+### **Precompiled smart contract are deployed from the genesis block using --bin-runtime.**
+- solc --overwrite --gas --bin-runtime --abi --optimize-runs=200 -o ./build/contracts ./contracts/contractname.sol
+- Output files contractname.bin and contractname.abi are available in ./build/contracts folder. If file dpes not exist, program will throw "file not found!" error
+

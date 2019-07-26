@@ -124,6 +124,14 @@ var main = async function () {
                     }    
                     break;
                 }    
+            case "transactOnPrivateContract": 
+                {
+                    let inputValues = temp[1].split(",");
+                    if(inputValues.length > 6) {
+                        await setGreeterValues(inputValues[0],inputValues[1],inputValues[2],inputValues[3],inputValues[4],inputValues[5],inputValues[6],inputValues[7],inputValues[8]);
+                    }    
+                    break;
+                }    
             case "testInvoices": {
                 let list = temp[1].split(",");
                 await testInvoicesContract(list[0],list[1]);
@@ -1000,8 +1008,8 @@ async function deployGreeterPrivate(host1, host2, host3, host4, toPrivatePort, t
             console.log("Greeter deployed contract address: ", deployedAddressGreeter);
             console.log("Greeter deployed transactionHash: ", tx.transactionHash);
             utils.writeContractsINConfig("Greeter",deployedAddressGreeter);
-            //getGreeterValues(deployedAddressGreeter);
-            setGreeterValues(deployedAddressGreeter,host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2);
+            getGreeterValues(deployedAddressGreeter);
+            //setGreeterValues(deployedAddressGreeter,host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2);
         }).catch(function (err) {
             console.log("error");
             console.log(err);
@@ -1009,7 +1017,17 @@ async function deployGreeterPrivate(host1, host2, host3, host4, toPrivatePort, t
     });
 }
 
-async function setGreeterValues(deployedAddressGreeter, host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2) {
+async function setGreeterValues(host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2, deployedAddressGreeter) {
+
+    if(!usecontractconfigFlag && !deployedAddressGreeter) {
+        deployGreeterPrivate(host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2);
+        deployedAddressGreeter = utils.readContractFromConfigContracts("Greeter");
+        if(deployedAddressGreeter == "") {
+            console.log("deployedAddressGreeter is undefined in contracts config")
+            return;
+        }
+    }
+    
     console.log(`${fromPubKey}`);
     console.log(`${toPubKey}`);
     const h1 = "http://" + host1 + ":" + port;
