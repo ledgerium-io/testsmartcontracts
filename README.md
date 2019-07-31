@@ -92,7 +92,7 @@ The ledgeriumtestutility can be used with different switches
 
 - **Deploy ERC20Mock smart contract on Ethereum testnet 'Rinkeby'**  
   ```
-  node index.js rinkeby readkeyconfig=true deployERC20Mock
+  node index.js readkeyconfig=true rinkeby deployERC20Mock
   ```
 ## **Additional:**
 ### **Smart Contracts are compiled with following commands**  
