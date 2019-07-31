@@ -88,6 +88,8 @@ var main = async function () {
                 }
                 break;
             case "rinkeby":
+                accountAddressList = global.accountAddressList;
+                privateKey = global.privateKey;
                 let HDWalletProvider = require("truffle-hdwallet-provider");
                 provider = new HDWalletProvider(privateKey[accountAddressList[0]], "https://rinkeby.infura.io/v3/931eac1d45254c16acc71d0fc11b88f0");
                 web3 = new Web3();
@@ -516,8 +518,11 @@ async function testSimpleStorageContract() {
     console.log("TransactioHash for SimpleStorage set -", transactionObject.transactionHash);
 
     var val = await utils.decodeInputVals(transactionObject.transactionHash,value[0],web3);
-    console.log("Input value for TransactioHash", transactionObject.transactionHash, "is", val.value);
-
+    console.log("Input value for TransactioHash", transactionObject.transactionHash, ":");
+    var bn;
+    for(bn of val) {
+        console.log(bn.toNumber());
+    }     
     result = await simpleStorage.methods.get().call({from : ethAccountToUse});
     console.log("get after", result);
 }

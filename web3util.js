@@ -4,9 +4,9 @@ const moment = require('moment');
 const mnemonic = require('./mnemonic');
 const solc = require('solc');
 const EthereumTx = require('ethereumjs-tx');
-var keythereum = require('keythereum');
+const keythereum = require('keythereum');
 const ethUtil = require('ethereumjs-util');
-var txDecoder = require('ethereum-tx-decoder');
+const txDecoder = require('ethereum-tx-decoder');
 
 class utils {
     async getCurrentTime () {

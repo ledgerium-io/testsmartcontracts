@@ -1,13 +1,13 @@
 # **Getting Started**
-This repo is created to run various testcases on Ledgerium Blockchain on smart contracts using web3js which includes deployment and executing transactions.
+This repo provides utility functions to test different scenarios on Ledgerium Blockchain e.g. deploy public and private smart contracts, execute transactions using web3js.
 
 ## **Clone the repo and install the project**
-- git clone https://github.com/ledgerium/testsmartcontracts.git 
-- cd testsmartcontracts
+- git clone https://github.com/ledgerium-io/ledgeriumtestutility.git 
+- cd ledgeriumtestutility
 - npm install
 
 ### **Specifications**
-The testsmartcontract can be used with different switches
+The ledgeriumtestutility can be used with different switches
 
 **protocol**
 - ws
@@ -19,17 +19,12 @@ The testsmartcontract can be used with different switches
 
 **port**
 - e.g. 9000 for Websocket
-- e.g. 8545 for http
+- e.g. 8545 for HTTP
 
 **readkeyconfig**
 - if keystore\privatekey.json needs to be used for accounts and respective their private keys
 
 ### **Run the tests - Usages**
-- **Deploy ERC20Mock smart contract on Ethereum testnet Rinkeby**  
-  ```
-  node index.js rinkeby readkeyconfig=true deployERC20Mock
-  ```
-
 - **Deploy LedgeriumToken ERC20 smart contract on Ledgerium Blockchain**
   ```
   node index.js protocol=<http/ws> hostname=<masternode node ip address> port=<rpc/ws port> readkeyconfig=true testLedgeriumToken
@@ -95,6 +90,10 @@ The testsmartcontract can be used with different switches
   node index.js createprivatepubliccombo=<mnemonics string>
   ``` 
 
+- **Deploy ERC20Mock smart contract on Ethereum testnet 'Rinkeby'**  
+  ```
+  node index.js rinkeby readkeyconfig=true deployERC20Mock
+  ```
 ## **Additional:**
 ### **Smart Contracts are compiled with following commands**  
 ### **Solidity compiler to compile smart contract, to be deployed and transact**
