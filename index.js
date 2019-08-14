@@ -2,7 +2,8 @@
 const fs = require('fs');
 const Web3 = require('web3');
 const Utils =  require('./web3util');
-const quorumjs   = require("quorum-js");
+const quorumjs   = require("quorum-xlg-js");
+const sslKeys = require('./helpers/generateKeys')
 
 var provider,fromPubKey,toPubKey;
 var protocol,host,port,web3;
@@ -171,6 +172,9 @@ var main = async function () {
             case "createprivatepubliccombo":
                 let mnemonic = temp[1];
                 await createprivatepubliccombo(mnemonic);
+                break;
+            case "generateSSLKeys":
+                generateKeys();
                 break;
             default:
                 //throw "command should be of form :\n node deploy.js host=<host> file=<file> contracts=<c1>,<c2> dir=<dir>";
@@ -966,7 +970,7 @@ async function deployGreeterPrivate(host1, host2, host3, host4, toPrivatePort, t
     const h2 = "http://" + host2 + ":" + toPort1;
     const h3 = "http://" + host3 + ":" + otherPort1;
     const h4 = "http://" + host4 + ":" + otherPort2;
-    const toPrivateURL = "http://" + host + ":" + toPrivatePort;
+    const toPrivateURL = "https://" + host + ":" + toPrivatePort;
 
     web31 = new Web3(new Web3.providers.HttpProvider(h1));
     web32 = new Web3(new Web3.providers.HttpProvider(h2));
@@ -984,9 +988,17 @@ async function deployGreeterPrivate(host1, host2, host3, host4, toPrivatePort, t
     let constructorParameters = [];
     constructorParameters.push("Hi Ledgerium");
     //value[0] = Contract ABI and value[1] =  Contract Bytecode
+
+    let tlsOptions = {
+        key: fs.readFileSync('./certs/cert.key'),
+        clcert: fs.readFileSync('./certs/cert.pem'),
+        allowInsecure: true
+    }
+
     let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web31,constructorParameters);
     const rawTransactionManager = quorumjs.RawTransactionManager(web31, {
-        privateUrl:toPrivateURL
+        privateUrl:toPrivateURL,
+        tlsSettings: tlsOptions
     });
     var abcd = '0x' + global.privateKey[ethAccountToUse];
     var gasPrice = await web3.eth.getGasPrice();
@@ -1039,7 +1051,7 @@ async function setGreeterValues(host1, host2, host3, host4, toPrivatePort, toPor
     const h2 = "http://" + host2 + ":" + toPort1;
     const h3 = "http://" + host3 + ":" + otherPort1;
     const h4 = "http://" + host4 + ":" + otherPort2;
-    const toPrivateURL = "http://" + host + ":" + toPrivatePort;
+    const toPrivateURL = "https://" + host + ":" + toPrivatePort;
 
     web31 = new Web3(new Web3.providers.HttpProvider(h1));
     web32 = new Web3(new Web3.providers.HttpProvider(h2));
@@ -1058,9 +1070,17 @@ async function setGreeterValues(host1, host2, host3, host4, toPrivatePort, toPor
 
     var ethAccountToUse = global.accountAddressList[0];
     var encodedABI = contract1.methods.setMyNumber(316).encodeABI();
+
+    let tlsOptions = {
+        key: fs.readFileSync('./certs/cert.key'),
+        clcert: fs.readFileSync('./certs/cert.pem'),
+        allowInsecure: true
+    }    
     //value[0] = Contract ABI and value[1] =  Contract Bytecode
     const rawTransactionManager = quorumjs.RawTransactionManager(web31, {
-        privateUrl:toPrivateURL
+        privateUrl:toPrivateURL,
+        tlsSettings: tlsOptions
+
     });
     var abcd = '0x' + global.privateKey[ethAccountToUse];
     var gasPrice = await web3.eth.getGasPrice();
@@ -1083,7 +1103,7 @@ async function setGreeterValues(host1, host2, host3, host4, toPrivatePort, toPor
     txnParams.nonce = nonceToUse;
     const newTx = rawTransactionManager.sendRawTransaction(txnParams);
     newTx.then(function (tx){
-        console.log("Greeter setMyNumber transactionHash: ", tx.transactionHash);
+           console.log("Greeter setMyNumber transactionHash: ", tx.transactionHash);
         getGreeterValues(deployedAddressGreeter);
     }).catch(function (err) {
         console.log("error");
@@ -1114,28 +1134,38 @@ async function getGreeterValues(deployedAddressGreeter) {
         else {
             console.log("error 1",error);
         }
-    });
+    }).catch(err => {
+        console.log(err)
+    }); 
+
     contract2.methods.getMyNumber().call().then(function (val, error) {
         if(!error)
             console.log(val);
         else {
             console.log("error 2",error);
         }
-    });
+    }).catch(err => {
+        console.log(err)
+    }); 
+    
     contract3.methods.getMyNumber().call().then(function (val, error) {
         if(!error)
             console.log(val);
         else {
             console.log("error 3",error);
         }
-    });
+    }).catch(err => {
+        console.log(err)
+    }); 
     contract4.methods.getMyNumber().call().then(function (val, error) {
         if(!error)
             console.log(val);
         else {
             console.log("error 4",error);
         }
-    });
+    }).catch(err => {
+        console.log(err)
+    }); 
 }
 
 async function deploySimpleStoragePrivate(host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2) {
@@ -1240,3 +1270,8 @@ async function getSimpleStorageValues(deployedAddressSimpleStorage) {
         }
     });
 }
+
+function generateKeys() {
+    console.log(sslKeys.generateSSLKeys())
+}
+
