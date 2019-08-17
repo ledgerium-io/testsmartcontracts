@@ -4,7 +4,7 @@ This repo provides utility functions to test different scenarios on Ledgerium Bl
 ## **Clone the repo and install the project**
 - git clone https://github.com/ledgerium-io/ledgeriumtestutility.git 
 - cd ledgeriumtestutility
-- npm install
+- yarn install
 
 ### **Specifications**
 The ledgeriumtestutility can be used with different switches

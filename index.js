@@ -2,7 +2,7 @@
 const fs = require('fs');
 const Web3 = require('web3');
 const Utils =  require('./web3util');
-const quorumjs   = require("quorum-xlg-js");
+const quorumjs   = require("quorum-js");
 const sslKeys = require('./helpers/generateKeys')
 
 var provider,fromPubKey,toPubKey;
