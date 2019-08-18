@@ -69,7 +69,7 @@ class utils {
                     data: byteCodeWithParam
                 }
                 const tx = new EthereumTx(txParams);
-                const privateKeyBuffer = new Buffer(privateKey, 'hex');
+                const privateKeyBuffer = Buffer.from(privateKey, 'hex');
                 tx.sign(privateKeyBuffer);
                 const serializedTx = tx.serialize();
 
@@ -101,7 +101,7 @@ class utils {
                     data: methodData
                 }
                 const tx = new EthereumTx(txParams)
-                const privateKeyBuffer = new Buffer(privateKey, 'hex');
+                const privateKeyBuffer = Buffer.from(privateKey, 'hex');
                 tx.sign(privateKeyBuffer);
                 const serializedTx = tx.serialize();
 
@@ -145,7 +145,7 @@ class utils {
                 //"privateFor" : privateFor
             }
             const tx = new EthereumTx(txParams);
-            const privateKeyBuffer = new Buffer(privateKey, 'hex');
+            const privateKeyBuffer = Buffer.from(privateKey, 'hex');
             tx.sign(privateKeyBuffer);
             const serializedTx = tx.serialize();
 
@@ -204,7 +204,7 @@ class utils {
             }
             const tx = new EthereumTx(txParams);
             const privateKey = fromPrivateKey.slice(2,fromPrivateKey.length);
-            const privateKeyBuffer = new Buffer(privateKey, 'hex');
+            const privateKeyBuffer = Buffer.from(privateKey, 'hex');
             tx.sign(privateKeyBuffer);
             const serializedTx = tx.serialize();
 

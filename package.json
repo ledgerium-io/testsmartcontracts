@@ -29,20 +29,25 @@
     "ethereumjs-tx": "^1.3.7",
     "ethereumjs-util": "6.1.0",
     "ethjs-abi": "^0.2.1",
-    "ethjs-unit": "npm:ethjs-unit-ledgerium",
     "keythereum": "^1.0.4",
     "mocha": "6.1.4",
     "moment": "^2.22.2",
-    "promise": "7.1.1",
-    "quorum-js": "npm:quorum-xlg-js",
+    "node-forge": "^0.8.5",
+    "promise": "7.1.1",    
     "solc": "^0.4.25",
     "truffle-hdwallet-provider": "^1.0.15",
     "web3": "^1.0.0-beta.36",
-    "websocket": "^1.0.26"
-  },
+    "websocket": "^1.0.26",    
+    "fs-promise": "npm:fs-extra-promise",
+    "quorum-js": "npm:quorum-xlg-js",
+    "ethjs-unit": "npm:ethjs-unit-ledgerium",
+    "tar.gz": "npm:tar"
+  },  
   "resolutions": {
     "ethjs-unit": "npm:ethjs-unit-ledgerium",
     "request": "2.88.0",
-    "quorum-js": "npm:quorum-xlg-js"
+    "quorum-js": "npm:quorum-xlg-js",
+    "fs-promise": "npm:fs-extra-promise",
+    "tar.gz": "npm:tar"
   }
 }

@@ -3,7 +3,7 @@ const fs = require('fs');
 const Web3 = require('web3');
 const Utils =  require('./web3util');
 const quorumjs   = require("quorum-js");
-const sslKeys = require('./helpers/generateKeys')
+const sslCerts = require('./helpers/generateCerts')
 
 var provider,fromPubKey,toPubKey;
 var protocol,host,port,web3;
@@ -173,8 +173,8 @@ var main = async function () {
                 let mnemonic = temp[1];
                 await createprivatepubliccombo(mnemonic);
                 break;
-            case "generateSSLKeys":
-                generateKeys();
+            case "generatetlscerts":
+                generateCerts();
                 break;
             default:
                 //throw "command should be of form :\n node deploy.js host=<host> file=<file> contracts=<c1>,<c2> dir=<dir>";
@@ -989,10 +989,20 @@ async function deployGreeterPrivate(host1, host2, host3, host4, toPrivatePort, t
     constructorParameters.push("Hi Ledgerium");
     //value[0] = Contract ABI and value[1] =  Contract Bytecode
 
-    let tlsOptions = {
-        key: fs.readFileSync('./certs/cert.key'),
-        clcert: fs.readFileSync('./certs/cert.pem'),
-        allowInsecure: true
+    let tlsOptions;
+
+    try {
+         tlsOptions = {
+            key: fs.readFileSync('./certs/cert.key'),
+            clcert: fs.readFileSync('./certs/cert.pem'),
+            allowInsecure: true
+        }
+    } catch (e) {
+        if(e.code === 'ENOENT'){
+            console.log('Unable to read the certificate files. Do they exist?')
+        }
+        else console.log(e)
+        return
     }
 
     let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web31,constructorParameters);
@@ -1028,8 +1038,14 @@ async function deployGreeterPrivate(host1, host2, host3, host4, toPrivatePort, t
             getGreeterValues(deployedAddressGreeter);
             //setGreeterValues(deployedAddressGreeter,host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2);
         }).catch(function (err) {
-            console.log("error");
-            console.log(err);
+            if(err.error.code === 'HPE_INVALID_CONSTANT') {
+                console.log('Server returned no headers. Does server accept https request?')                
+            }
+
+            if(err.error.code === 'EPROTO') {
+                console.log('Certificate Error. Verify if the certificate is valid and not regenerated with same subject Info ')
+            }
+            console.log(err)
         });
     });
 }
@@ -1051,7 +1067,7 @@ async function setGreeterValues(host1, host2, host3, host4, toPrivatePort, toPor
     const h2 = "http://" + host2 + ":" + toPort1;
     const h3 = "http://" + host3 + ":" + otherPort1;
     const h4 = "http://" + host4 + ":" + otherPort2;
-    const toPrivateURL = "https://" + host + ":" + toPrivatePort;
+    const toPrivateURL = "http://" + host + ":" + toPrivatePort;
 
     web31 = new Web3(new Web3.providers.HttpProvider(h1));
     web32 = new Web3(new Web3.providers.HttpProvider(h2));
@@ -1135,7 +1151,7 @@ async function getGreeterValues(deployedAddressGreeter) {
             console.log("error 1",error);
         }
     }).catch(err => {
-        console.log(err)
+        console.log(err.message + ' Is this a private transaction?')
     }); 
 
     contract2.methods.getMyNumber().call().then(function (val, error) {
@@ -1145,7 +1161,7 @@ async function getGreeterValues(deployedAddressGreeter) {
             console.log("error 2",error);
         }
     }).catch(err => {
-        console.log(err)
+        console.log(err.message + ' Is this a private transaction?')
     }); 
     
     contract3.methods.getMyNumber().call().then(function (val, error) {
@@ -1155,7 +1171,7 @@ async function getGreeterValues(deployedAddressGreeter) {
             console.log("error 3",error);
         }
     }).catch(err => {
-        console.log(err)
+        console.log(err.message + ' Is this a private transaction?')
     }); 
     contract4.methods.getMyNumber().call().then(function (val, error) {
         if(!error)
@@ -1164,7 +1180,7 @@ async function getGreeterValues(deployedAddressGreeter) {
             console.log("error 4",error);
         }
     }).catch(err => {
-        console.log(err)
+        console.log(err.message + ' Is this a private transaction?')
     }); 
 }
 
@@ -1271,7 +1287,7 @@ async function getSimpleStorageValues(deployedAddressSimpleStorage) {
     });
 }
 
-function generateKeys() {
-    console.log(sslKeys.generateSSLKeys())
+function generateCerts() {
+    sslCerts.generateTLSCerts()
 }
 

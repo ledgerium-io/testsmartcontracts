@@ -68,7 +68,7 @@ const sendTransaction = (acc, methodData, to, callback)=>{
 			gasLimit : web3.utils.toHex("4700000"),
 			data     : methodData
 		});
-		const privateKeyBuffer = new Buffer( pk[acc], 'hex' );
+		const privateKeyBuffer = Buffer.from( pk[acc], 'hex' );
 		tx.sign( privateKeyBuffer );
 		const serializedTx = tx.serialize();
 		web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'), ( err, hash )=>{
