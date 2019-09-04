@@ -3,6 +3,7 @@ const fs = require('fs');
 const Web3 = require('web3');
 const Utils =  require('./web3util');
 const quorumjs   = require("quorum-js");
+const sslCerts = require('./helpers/generatecerts')
 
 var provider,fromPubKey,toPubKey;
 var protocol,host,port,web3;
@@ -171,6 +172,9 @@ var main = async function () {
             case "createprivatepubliccombo":
                 let mnemonic = temp[1];
                 await createprivatepubliccombo(mnemonic);
+                break;
+            case "generatetlscerts":
+                generateCerts();
                 break;
             default:
                 //throw "command should be of form :\n node deploy.js host=<host> file=<file> contracts=<c1>,<c2> dir=<dir>";
@@ -538,7 +542,7 @@ async function testInvoicesContract(invoiceID,hashVal) {
         return;
     }
     var ethAccountToUse = accountAddressList[0];
-    var deployedAddressInvoice = "0x0000000000000000000000000000000000002020";
+    var deployedAddressInvoice = "0xf6499E3029c704A70dc6389dA71D60f544463469";
     
     var invoice = new web3.eth.Contract(JSON.parse(value[0]),deployedAddressInvoice);
     global.invoice = invoice;
@@ -966,7 +970,7 @@ async function deployGreeterPrivate(host1, host2, host3, host4, toPrivatePort, t
     const h2 = "http://" + host2 + ":" + toPort1;
     const h3 = "http://" + host3 + ":" + otherPort1;
     const h4 = "http://" + host4 + ":" + otherPort2;
-    const toPrivateURL = "http://" + host + ":" + toPrivatePort;
+    const toPrivateURL = "https://" + host + ":" + toPrivatePort;
 
     web31 = new Web3(new Web3.providers.HttpProvider(h1));
     web32 = new Web3(new Web3.providers.HttpProvider(h2));
@@ -983,10 +987,28 @@ async function deployGreeterPrivate(host1, host2, host3, host4, toPrivatePort, t
 
     let constructorParameters = [];
     constructorParameters.push("Hi Ledgerium");
+
+    let tlsOptions;
+
+    try {
+         tlsOptions = {
+            key: fs.readFileSync('./certs/cert.key'),
+            clcert: fs.readFileSync('./certs/cert.pem'),
+            allowInsecure: true
+        }
+    } catch (e) {
+        if(e.code === 'ENOENT'){
+            console.log('Unable to read the certificate files. Do they exist?')
+        }
+        else console.log(e)
+        return
+    }
+
     //value[0] = Contract ABI and value[1] =  Contract Bytecode
     let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web31,constructorParameters);
     const rawTransactionManager = quorumjs.RawTransactionManager(web31, {
-        privateUrl:toPrivateURL
+        privateUrl:toPrivateURL,
+        tlsSettings: tlsOptions
     });
     var abcd = '0x' + global.privateKey[ethAccountToUse];
     var gasPrice = await web3.eth.getGasPrice();
@@ -1239,4 +1261,8 @@ async function getSimpleStorageValues(deployedAddressSimpleStorage) {
             console.log("error 4",error);
         }
     });
+}
+
+function generateCerts() {
+    sslCerts.generateTLSCerts()
 }

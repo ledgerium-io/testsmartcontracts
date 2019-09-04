@@ -145,7 +145,7 @@ class utils {
                 //"privateFor" : privateFor
             }
             const tx = new EthereumTx(txParams);
-            const privateKeyBuffer = new Buffer(privateKey, 'hex');
+            const privateKeyBuffer = new Buffer.from(privateKey, 'hex');
             tx.sign(privateKeyBuffer);
             const serializedTx = tx.serialize();
 
