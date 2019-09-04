@@ -4,7 +4,7 @@ This repo provides utility functions to test different scenarios on Ledgerium Bl
 ## **Clone the repo and install the project**
 - git clone https://github.com/ledgerium-io/ledgeriumtestutility.git 
 - cd ledgeriumtestutility
-- npm install
+- yarn install
 
 ### **Specifications**
 The ledgeriumtestutility can be used with different switches
@@ -23,6 +23,9 @@ The ledgeriumtestutility can be used with different switches
 
 **readkeyconfig**
 - if keystore\privatekey.json needs to be used for accounts and respective their private keys
+
+**generatetlscerts**
+- Generate the TLS certificates needed for communicating with tessera node using https for private transactions. The subject information used for creating the certificates can be found in certs/config.json. When regenerating the certificates, we recommend to use unique subject information.
 
 ### **Run the tests - Usages**
 - **Deploy LedgeriumToken ERC20 smart contract on Ledgerium Blockchain**

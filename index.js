@@ -1038,7 +1038,12 @@ async function deployGreeterPrivate(host1, host2, host3, host4, toPrivatePort, t
             getGreeterValues(deployedAddressGreeter);
             //setGreeterValues(deployedAddressGreeter,host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2);
         }).catch(function (err) {
-            console.log("error");
+            if(err.error.code === 'HPE_INVALID_CONSTANT') {
+                    console.log('Server returned no headers. Does server accept https request?')                      
+            }
+                if(err.error.code === 'EPROTO') {
+                console.log('Certificate Error. Verify if the certificate is valid and not regenerated with same subject Info ')
+            }
             console.log(err);
         });
     });
@@ -1080,9 +1085,17 @@ async function setGreeterValues(host1, host2, host3, host4, toPrivatePort, toPor
 
     var ethAccountToUse = global.accountAddressList[0];
     var encodedABI = contract1.methods.setMyNumber(316).encodeABI();
+    
+    let tlsOptions = {
+        key: fs.readFileSync('./certs/cert.key'),
+        clcert: fs.readFileSync('./certs/cert.pem'),
+        allowInsecure: true
+    }  
+
     //value[0] = Contract ABI and value[1] =  Contract Bytecode
     const rawTransactionManager = quorumjs.RawTransactionManager(web31, {
-        privateUrl:toPrivateURL
+        privateUrl:toPrivateURL,
+        tlsSettings: tlsOptions
     });
     var abcd = '0x' + global.privateKey[ethAccountToUse];
     var gasPrice = await web3.eth.getGasPrice();
@@ -1136,27 +1149,38 @@ async function getGreeterValues(deployedAddressGreeter) {
         else {
             console.log("error 1",error);
         }
+    }).catch(err => {
+        console.log(err.message + ' Is this a private transaction?')
     });
+
     contract2.methods.getMyNumber().call().then(function (val, error) {
         if(!error)
             console.log(val);
         else {
             console.log("error 2",error);
         }
+    }).catch(err => {
+        console.log(err.message + ' Is this a private transaction?')
     });
+
     contract3.methods.getMyNumber().call().then(function (val, error) {
         if(!error)
             console.log(val);
         else {
             console.log("error 3",error);
         }
+    }).catch(err => {
+        console.log(err.message + ' Is this a private transaction?')
     });
+
     contract4.methods.getMyNumber().call().then(function (val, error) {
         if(!error)
             console.log(val);
         else {
             console.log("error 4",error);
         }
+    }).catch(err => {
+        console.log(err.message + ' Is this a private transaction?')
     });
 }
 
