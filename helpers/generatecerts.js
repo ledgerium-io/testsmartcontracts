@@ -60,13 +60,9 @@ function generateTLSCerts () {
       fs.writeFileSync(path.join(directoryPath, 'cert.key'), key)
       
       console.log('TLS certificates have been generated with the following information', subjectInfo)
-      
-
   } catch (e) {
     console.log('Error parsing certificate config file - config.json')
-    
   }
-
 }
 
 module.exports = {
