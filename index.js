@@ -56,8 +56,15 @@ var main = async function () {
             case "port":
                 port = temp[1];
                 global.port = port;
-                URL = "http://" + host + ":" + port;
-                web3 = new Web3(new Web3.providers.HttpProvider(URL));
+                URL = protocol + host + ":" + port;
+                if(protocol == "ws://") {
+                    web3 = new Web3(new Web3.providers.WebsocketProvider(URL));
+                } else if(protocol == "http://") {
+                    web3 = new Web3(new Web3.providers.HttpProvider(URL));
+                } else {
+                    console.log("Wrong protocol!!, exiting");
+                    process.exit(1);
+                }
                 global.web3 = web3;
                 break;
             case "privateKeys":
@@ -199,7 +206,7 @@ async function createprivatepubliccombo(mnemonic) {
     var publicKey = ethUtils.privateToPublic(privateKey).toString('hex');
     let ethAddress = ethUtils.privateToAddress(privateKey).toString('hex');
 
-    console.log("mnemonics ", mnemonic, "\nprivateKey", privateKey, "\npublicKey", publicKey, "\nethAddress", ethAddress);
+    console.log("mnemonics:", mnemonic, "\nprivateKey:", privateKey, "\npublicKey:", publicKey, "\nLedgerium Account Address:", ethAddress);
 }
 
 async function deployERC20MockContract() {
@@ -222,7 +229,6 @@ async function deployERC20MockContract() {
         constructorParameters.push(accountAddressList[0]);
         constructorParameters.push("2500");
         //value[0] = Contract ABI and value[1] =  Contract Bytecode
-        //var deployedERC20MockAddress = "0x0000000000000000000000000000000000002020";
         let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
         let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
         deployedERC20MockAddress = transactionHash.contractAddress;
@@ -436,6 +442,10 @@ async function deployERC20MockContract() {
     // var encodedABI = await ERC20Mock.methods.burnFrom(zeroAddress, 1);
     // var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedERC20MockAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
     // console.log('Transaction log for burnFrom - zeroAddress ' + transactionObject.transactionHash)
+
+    if(protocol == "ws://") {
+        web3.currentProvider.connection.close();
+    }
 }
 
 async function testGreetingContract() {
@@ -454,7 +464,6 @@ async function testGreetingContract() {
         let constructorParameters = [];
         constructorParameters.push("Hi Ledgerium");
         //value[0] = Contract ABI and value[1] =  Contract Bytecode
-        //var deployedAddressGreeter = "0x0000000000000000000000000000000000002020";
         let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
         let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
         deployedAddressGreeter = transactionHash.contractAddress;
@@ -481,6 +490,10 @@ async function testGreetingContract() {
 
     result = await greeting.methods.getMyNumber().call({from : ethAccountToUse});
     console.log("getMyNumber after", result);
+
+    if(protocol == "ws://") {
+        web3.currentProvider.connection.close();
+    }
 }
 
 async function testSimpleStorageContract() {
@@ -499,7 +512,6 @@ async function testSimpleStorageContract() {
         let constructorParameters = [];
         constructorParameters.push(101);
         //value[0] = Contract ABI and value[1] =  Contract Bytecode
-        //var deployedAddressSimpleStorage = "0x0000000000000000000000000000000000002020";
         let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
         let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
         deployedAddressSimpleStorage = transactionHash.contractAddress;
@@ -522,13 +534,16 @@ async function testSimpleStorageContract() {
     console.log("TransactioHash for SimpleStorage set -", transactionObject.transactionHash);
 
     var val = await utils.decodeInputVals(transactionObject.transactionHash,value[0],web3);
-    console.log("Input value for TransactioHash", transactionObject.transactionHash, ":");
     var bn;
     for(bn of val) {
-        console.log(bn.toNumber());
+        console.log("Input value for TransactioHash", transactionObject.transactionHash, ":", bn.toNumber());
     }     
     result = await simpleStorage.methods.get().call({from : ethAccountToUse});
     console.log("get after", result);
+
+    if(protocol == "ws://") {
+        web3.currentProvider.connection.close();
+    }
 }
 
 async function testInvoicesContract(invoiceID,hashVal) {
@@ -542,38 +557,59 @@ async function testInvoicesContract(invoiceID,hashVal) {
         return;
     }
     var ethAccountToUse = accountAddressList[0];
-    var deployedAddressInvoice = "0xf6499E3029c704A70dc6389dA71D60f544463469";
+    var deployedAddressInvoice;
+    if(!usecontractconfigFlag){
+        let constructorParameters = [];
+        constructorParameters.push(101);
+        //value[0] = Contract ABI and value[1] =  Contract Bytecode
+        let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
+        let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
+        deployedAddressInvoice = transactionHash.contractAddress;
+        console.log("Invoice deployedAddress ", deployedAddressInvoice);
+
+        utils.writeContractsINConfig("Invoice",deployedAddressInvoice);
+    }
+    else{
+        deployedAddressInvoice = utils.readContractFromConfigContracts("Invoice");
+    }
     
     var invoice = new web3.eth.Contract(JSON.parse(value[0]),deployedAddressInvoice);
     global.invoice = invoice;
     
     var result = await invoice.methods.isHashExists(hashVal).call({from : ethAccountToUse});
-    console.log("isHashExists after", result);
+    console.log("isHashExists returns", result);
     
     let encodedABI = invoice.methods.addInvoice(invoiceID,hashVal).encodeABI();
     var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedAddressInvoice,encodedABI,privateKey[ethAccountToUse],web3,0);
     console.log("TransactionLog for Invoice Setvalue -", transactionObject.transactionHash);
 
     result = await invoice.methods.isHashExists(hashVal).call({from : ethAccountToUse});
-    console.log("isHashExists after", result);
+    console.log("isHashExists returns", result);
 
     result = await invoice.methods.getInvoiceID(hashVal).call({from : ethAccountToUse});
-    console.log("getInvoiceID after", result);
+    console.log("getInvoiceID returns", result);
+
+    if(protocol == "ws://") {
+        web3.currentProvider.connection.close();
+    }
 }
 
-async function transferXLG(fromPrivateKey,toEthereumAccount,XLGAmount) {
+async function transferXLG(fromPrivateKey,toLedgeriumAccount,XLGAmount) {
     
     var transactionObject = "";
     if(fromPrivateKey.indexOf("0x") == 0) { //when privatekeys are prefixed 0x
-        transactionObject = await utils.transferXLG(fromPrivateKey,toEthereumAccount,XLGAmount,web3);
+        transactionObject = await utils.transferXLG(fromPrivateKey,toLedgeriumAccount,XLGAmount,web3);
         console.log("TransactionLog for transfer -", transactionObject.transactionHash);
     } else if(fromPrivateKey.indexOf("0x") == -1) { //when privatekeys are not prefixed 0x
         fromPrivateKey = "0x" + fromPrivateKey;
-        transactionObject = await utils.transferXLG(fromPrivateKey,toEthereumAccount,XLGAmount,web3);
+        transactionObject = await utils.transferXLG(fromPrivateKey,toLedgeriumAccount,XLGAmount,web3);
         console.log("TransactionLog for transfer -", transactionObject.transactionHash);
     } else {
         console.log("Wrong format private keys!!");
         process.exit(1);
+    }
+    if(protocol == "ws://") {
+        web3.currentProvider.connection.close();
     }
 }
 
@@ -597,7 +633,6 @@ async function deployERC20Contract(){
         constructorParameters.push(accountAddressList[0]);
         constructorParameters.push("2500");
         //value[0] = Contract ABI and value[1] =  Contract Bytecode
-        //var deployedERC20Address = "0x0000000000000000000000000000000000002020";
         let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
         let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
         deployedERC20Address = transactionHash.contractAddress;
@@ -630,6 +665,10 @@ async function deployERC20Contract(){
 
     result = await mock20ERC.methods.balanceOf(accountAddressList[0]).call();
     console.log("balanceOf", result, "of account",  accountAddressList[0]);
+
+    if(protocol == "ws://") {
+        web3.currentProvider.connection.close();
+    }
 }
 
 async function testLedgeriumToken(){
@@ -687,34 +726,9 @@ async function testLedgeriumToken(){
     result = await ledgeriumToken.methods.balanceOf(accountAddressList[0]).call();
     console.log("balanceOf", result, "of account",  accountAddressList[0]);
 
-    filename = __dirname + "/build/contracts/MultiSigWallet";
-    value = utils.readSolidityContractJSON(filename);
-    if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
-        return;
+    if(protocol == "ws://") {
+        web3.currentProvider.connection.close();
     }
-    
-    var multiSigContract = new web3.eth.Contract(JSON.parse(value[0]),deployedLedgeriumTokenAddress);
-    global.multiSigContract = multiSigContract;
-
-    if(!usecontractconfigFlag){
-        let constructorParameters = [];
-        constructorParameters.push([accountAddressList[0],accountAddressList[1],accountAddressList[2]]);
-        constructorParameters.push(2);
-        //value[0] = Contract ABI and value[1] =  Contract Bytecode
-        let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
-        let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
-        deployedMultiSigWalletAddress = transactionHash.contractAddress;
-        console.log("MultiSigWallet deployedAddress ", deployedMultiSigWalletAddress);
-
-        utils.writeContractsINConfig("LedgeriumToken",deployedLedgeriumTokenAddress);
-        utils.writeContractsINConfig("MultiSigWallet",deployedMultiSigWalletAddress);
-    }
-    else{
-        deployedMultiSigWalletAddress = utils.readContractFromConfigContracts("MultiSigWallet");
-    }
-    // encodedABI = ledgeriumToken.methods.init([accountAddressList[0], accountAddressList[1], accountAddressList[2]], 2).encodeABI();
-    // transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedLedgeriumTokenAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
-    // console.log("TransactionLog for multiSigContract transfer -", transactionObject.transactionHash);
 }
 
 async function testPersonalImportAccount(inputPrivateKeys, password) {
@@ -722,40 +736,47 @@ async function testPersonalImportAccount(inputPrivateKeys, password) {
     if(inputPrivateKeys.length <= 0)
         return;
   
-    var ethereumAccountsList = await web3.eth.getAccounts();
-    console.log("No of Ethereum accounts on the node ",ethereumAccountsList.length);
+    try {
+        var ledgeriumAccountsList = await web3.eth.getAccounts();
+        console.log("No of Ledgerium accounts on the node ",ledgeriumAccountsList.length);
 
-    for(var index = 0; index < inputPrivateKeys.length; index++)
-    {
-        let flag = false;
-        let eachElement = inputPrivateKeys[index];
-        if(eachElement.indexOf("0x") == 0) { //when privatekeys are prefixed 0x
-            flag = true;
-        } else if(eachElement.indexOf("0x") == -1) { //when privatekeys are not prefixed 0x
-            eachElement = "0x" + eachElement;
-            flag = true;
-        } else {
-            console.log("Wrong format private key!!, This key will not be considered");
-        }
-        if(!flag)
-            continue;
-        let fromAccountAddress = await web3.eth.accounts.privateKeyToAccount(eachElement).address;
-        //ethereum gives back mixed case account address, we need to lowercase each of them before comparing! Have to run the loop. 
-        let found = false;
-        for (let item of ethereumAccountsList) {
-            if(item.toLowerCase() == fromAccountAddress.toLowerCase()) {
-                found = true;
-                break;
+        for(var index = 0; index < inputPrivateKeys.length; index++)
+        {
+            let flag = false;
+            let eachElement = inputPrivateKeys[index];
+            if(eachElement.indexOf("0x") == 0) { //when privatekeys are prefixed 0x
+                flag = true;
+            } else if(eachElement.indexOf("0x") == -1) { //when privatekeys are not prefixed 0x
+                eachElement = "0x" + eachElement;
+                flag = true;
+            } else {
+                console.log("Wrong format private key!!, This key will not be considered");
             }
+            if(!flag)
+                continue;
+            let fromAccountAddress = await web3.eth.accounts.privateKeyToAccount(eachElement).address;
+            //ledgerium gives back mixed case account address, we need to lowercase each of them before comparing! Have to run the loop. 
+            let found = false;
+            for (let item of ledgeriumAccountsList) {
+                if(item.toLowerCase() == fromAccountAddress.toLowerCase()) {
+                    found = true;
+                    break;
+                }
+            }
+            if(found){
+                found = false;
+                continue;
+            }
+            let ret = await utils.personalImportAccount(eachElement,password);
+            console.log("Account", ret, "got imported!");
+            var balance = await web3.eth.getBalance(ret);
+            console.log("FromAccount", ret, "has balance of", web3.utils.fromWei(balance, 'xlg'), "xlg");
         }
-        if(found){
-            found = false;
-            continue;
-        }
-        let ret = await utils.personalImportAccount(eachElement,password);
-        console.log("Account", ret, "got imported!");
-        var balance = await web3.eth.getBalance(ret);
-        console.log("FromAccount", ret, "has balance of", web3.utils.fromWei(balance, 'xlg'), "xlg");
+    } catch (exception) {
+         console.log(`${exception}`)
+    }
+    if(protocol == "ws://") {
+        web3.currentProvider.connection.close();
     }
 }
 
@@ -764,90 +785,98 @@ async function testNetworkManagerContract(peerNodesfileName) {
     accountAddressList = global.accountAddressList;
     privateKey = global.privateKey;  
   
-    var ethereumAccountsList = await web3.eth.getAccounts();
-    console.log("No of Ethereum accounts on the node ",ethereumAccountsList.length);
-    var ethAccountToUse = accountAddressList[0];
+    try {
+        var ledgeriumAccountsList = await web3.eth.getAccounts();
+        console.log("No of Ledgerium accounts on the node ",ledgeriumAccountsList.length);
+       
+        var ethAccountToUse = accountAddressList[0];
 
-    // Todo: Read ABI from dynamic source.
-    var filename = __dirname + "/build/contracts/NetworkManagerContract";
-    var value = utils.readSolidityContractJSON(filename);
-    if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
-        return;
-    }
+        // Todo: Read ABI from dynamic source.
+        var filename = __dirname + "/build/contracts/NetworkManagerContract";
+        var value = utils.readSolidityContractJSON(filename);
+        if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+            return;
+        }
 
-    var networkManagerAddress = "";
-    if(!usecontractconfigFlag){
-        let constructorParameters = [];
-        //value[0] = Contract ABI and value[1] =  Contract Bytecode
-        let encodedABI = await utils.getContractEncodeABI(value[0], value[1], web3, constructorParameters);
-        let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3, 0);
-        networkManagerAddress = transactionHash.contractAddress;
-        console.log("NetworkManager deployedAddress ", networkManagerAddress);
-        utils.writeContractsINConfig("NetworkManager",networkManagerAddress);
-    }
-    else{
-        networkManagerAddress = utils.readContractFromConfigContracts("NetworkManager");
-    }
+        var networkManagerAddress = "";
+        if(!usecontractconfigFlag){
+            let constructorParameters = [];
+            //value[0] = Contract ABI and value[1] =  Contract Bytecode
+            let encodedABI = await utils.getContractEncodeABI(value[0], value[1], web3, constructorParameters);
+            let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3, 0);
+            networkManagerAddress = transactionHash.contractAddress;
+            console.log("NetworkManager deployedAddress ", networkManagerAddress);
+            utils.writeContractsINConfig("NetworkManager",networkManagerAddress);
+        }
+        else{
+            networkManagerAddress = utils.readContractFromConfigContracts("NetworkManager");
+        }
+        
+        var nmContract = new web3.eth.Contract(JSON.parse(value[0]),networkManagerAddress);
+        let encodedABI = nmContract.methods.init().encodeABI();
+        var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,networkManagerAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
+        console.log("TransactionLog for Network Manager init() method -", transactionObject.transactionHash);
     
-    // let constructorParameters = [];
-    // let encodedABIdeployedContract = await utils.getContractEncodeABI(value[0], value[1], web3, constructorParameters);
-    // let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABIdeployedContract,privateKey[ethAccountToUse],web3,0);
-    // var networkManagerAddress = transactionHash.contractAddress;
-    // //var networkManagerAddress = "0x0000000000000000000000000000000000002023";
-    // console.log("networkManagerAddress deployedAddress ", networkManagerAddress);
+        var peerNodejson = JSON.parse(fs.readFileSync(peerNodesfileName, 'utf8'));
+        if(peerNodejson == "") {    
+            return;
+        }
 
-    var nmContract = new web3.eth.Contract(JSON.parse(value[0]),networkManagerAddress);
-    let encodedABI = nmContract.methods.init().encodeABI();
-    var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,networkManagerAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
-    console.log("TransactionLog for Network Manager init() method -", transactionObject.transactionHash);
-  
-    var peerNodejson = JSON.parse(fs.readFileSync(peerNodesfileName, 'utf8'));
-    if(peerNodejson == "") {    
-        return;
+        var peerNodes = peerNodejson["nodes"];
+        for(var index = 0; index < peerNodes.length; index++){
+            encodedABI = nmContract.methods.registerNode(peerNodes[index].nodename,
+                                                        peerNodes[index].hostname,
+                                                        peerNodes[index].role,
+                                                        peerNodes[index].ipaddress,
+                                                        peerNodes[index].port.toString(),
+                                                        peerNodes[index].publickey,
+                                                        peerNodes[index].enodeUrl
+                                                    ).encodeABI();
+            transactionObject = await utils.sendMethodTransaction(ethAccountToUse,networkManagerAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
+            console.log("TransactionLog for Network Manager registerNode -", transactionObject.transactionHash);
+
+            var val = await utils.decodeInputVals(transactionObject.transactionHash,value[0],web3);
+            if(val.length >0)
+                console.log("Input values for TransactioHash", transactionObject.transactionHash, "are", val[0],val[1],val[2],val[3],val[4],val[5],val[6]);
+            else
+                console.log("Input values for TransactioHash", transactionObject.transactionHash, "are not available!");    
+        }
+
+        var noOfNodes = await nmContract.methods.getNodesCounter().call();
+        console.log("No of Nodes -", noOfNodes);
+        for(let nodeIndex = 0; nodeIndex < noOfNodes; nodeIndex++) {
+            let result = await nmContract.methods.getNodeDetails(nodeIndex).call();
+            console.log("Details of peer index-", nodeIndex);
+            console.log("HostName ", result.hostName,"\nRole ", result.role, "\nIP Address ", result.ipAddress, "\nPort ", result.port, "\nPublic Key ", result.publicKey, "\nEnode ", result.enode);
+        }
+    } catch (exception) {
+        console.log(`${exception}`)
     }
-
-    var peerNodes = peerNodejson["nodes"];
-    for(var index = 0; index < peerNodes.length; index++){
-        encodedABI = nmContract.methods.registerNode(peerNodes[index].nodename,
-                                                    peerNodes[index].hostname,
-                                                    peerNodes[index].role,
-                                                    peerNodes[index].ipaddress,
-                                                    peerNodes[index].port.toString(),
-                                                    peerNodes[index].publickey,
-                                                    peerNodes[index].enodeUrl
-                                                ).encodeABI();
-        transactionObject = await utils.sendMethodTransaction(ethAccountToUse,networkManagerAddress,encodedABI,privateKey[ethAccountToUse],web3,0);
-        console.log("TransactionLog for Network Manager registerNode -", transactionObject.transactionHash);
-
-        var val = await utils.decodeInputVals(transactionObject.transactionHash,value[0],web3);
-        if(val.length >0)
-            console.log("Input values for TransactioHash", transactionObject.transactionHash, "are", val[0],val[1],val[2],val[3],val[4],val[5],val[6]);
-        else
-            console.log("Input values for TransactioHash", transactionObject.transactionHash, "are not available!");    
-    }
-
-    var noOfNodes = await nmContract.methods.getNodesCounter().call();
-    console.log("No of Nodes -", noOfNodes);
-    for(let nodeIndex = 0; nodeIndex < noOfNodes; nodeIndex++) {
-        let result = await nmContract.methods.getNodeDetails(nodeIndex).call();
-        console.log("Details of peer index-", nodeIndex);
-        console.log("HostName ", result.hostName,"\nRole ", result.role, "\nIP Address ", result.ipAddress, "\nPort ", result.port, "\nPublic Key ", result.publicKey, "\nEnode ", result.enode);
+    if(protocol == "ws://") {
+        web3.currentProvider.connection.close();
     }
     return;
 }
 
 async function testNewBlockEvent(host, port) {
 
+    //This is subscribing to an event from the blockchain and it has to be websocket!
     const h1 = protocol + host + ":" + port;
-    const web32 = new Web3(new Web3.providers.WebsocketProvider(h1));
-    web32.eth.subscribe('newBlockHeaders', function(error, result){
-        if (!error) {
-            console.log(result);
-            process.exit(0)
-            return;
-        }
-        console.error(error);
-    })
+    const web3 = new Web3(new Web3.providers.WebsocketProvider(h1));
+    try {
+        web3.eth.subscribe('newBlockHeaders', function(error, result) {
+            if (!error) {
+                console.log(result);
+            }
+            else {
+                console.error(error);
+            }    
+            web3.currentProvider.connection.close();
+            process.exit(1);
+        });
+    } catch (exception) {
+        console.log(`${exception}`)
+    }
     // .on("data", function(blockHeader){
     //     console.log(blockHeader);
     // })
