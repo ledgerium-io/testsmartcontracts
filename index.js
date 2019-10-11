@@ -98,6 +98,7 @@ var main = async function () {
                 global.web3 = web3;
                 break;
             case "testgreeter":
+                
                 await testGreetingContract();
                 break;
             case "testsimplestorage":
@@ -119,6 +120,13 @@ var main = async function () {
                     }    
                     break;
                 }    
+            case "getGreeterValues": {
+                let inputValues = temp[1].split(",");
+                if(inputValues.length > 6) {
+                    await getGreeterValues(inputValues[0],inputValues[1],inputValues[2],inputValues[3],inputValues[4],inputValues[5],inputValues[6],inputValues[7],"0x9bbd8D6223984f6bA53b2475bbeF0a661b3A66F7");
+                }    
+                break;
+            }
             case "testprivateTransactions": 
                 {
                     let inputValues = temp[1].split(",");
@@ -175,6 +183,9 @@ var main = async function () {
                 break;
             case "generatetlscerts":
                 generateCerts();
+                break;
+            case "deployProof":
+                await deployProof();
                 break;
             default:
                 //throw "command should be of form :\n node deploy.js host=<host> file=<file> contracts=<c1>,<c2> dir=<dir>";
@@ -499,7 +510,6 @@ async function testSimpleStorageContract() {
         let constructorParameters = [];
         constructorParameters.push(101);
         //value[0] = Contract ABI and value[1] =  Contract Bytecode
-        //var deployedAddressSimpleStorage = "0x0000000000000000000000000000000000002020";
         let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
         let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
         deployedAddressSimpleStorage = transactionHash.contractAddress;
@@ -541,24 +551,45 @@ async function testInvoicesContract(invoiceID,hashVal) {
     if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
         return;
     }
-    var ethAccountToUse = accountAddressList[0];
-    var deployedAddressInvoice = "0xf6499E3029c704A70dc6389dA71D60f544463469";
-    
-    var invoice = new web3.eth.Contract(JSON.parse(value[0]),deployedAddressInvoice);
-    global.invoice = invoice;
-    
-    var result = await invoice.methods.isHashExists(hashVal).call({from : ethAccountToUse});
-    console.log("isHashExists after", result);
-    
-    let encodedABI = invoice.methods.addInvoice(invoiceID,hashVal).encodeABI();
-    var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedAddressInvoice,encodedABI,privateKey[ethAccountToUse],web3,0);
-    console.log("TransactionLog for Invoice Setvalue -", transactionObject.transactionHash);
+    try {
+        var ethAccountToUse = accountAddressList[0];
+        var deployedAddressInvoice;
+        if(!usecontractconfigFlag){
+            let constructorParameters = [];
+            constructorParameters.push(101);
+            //value[0] = Contract ABI and value[1] =  Contract Bytecode
+            let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
+            let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
+            deployedAddressInvoice = transactionHash.contractAddress;
+            utils.writeContractsINConfig("Invoice",deployedAddressInvoice);
+        }
+        else{
+            deployedAddressInvoice = utils.readContractFromConfigContracts("Invoice");
+        }
+        console.log("Invoice deployedAddress ", deployedAddressInvoice);
+        
+        var invoice = new web3.eth.Contract(JSON.parse(value[0]),deployedAddressInvoice);
+        global.invoice = invoice;
+        
+        var result = await invoice.methods.isHashExists(hashVal).call({from : ethAccountToUse});
+        console.log("isHashExists after", result);
+        
+        let encodedABI = invoice.methods.addInvoice(invoiceID,hashVal).encodeABI();
+        var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedAddressInvoice,encodedABI,privateKey[ethAccountToUse],web3,0);
+        console.log("TransactionLog for Invoice Setvalue -", transactionObject.transactionHash);
 
-    result = await invoice.methods.isHashExists(hashVal).call({from : ethAccountToUse});
-    console.log("isHashExists after", result);
+        result = await invoice.methods.isHashExists(hashVal).call({from : ethAccountToUse});
+        console.log("isHashExists after", result);
 
-    result = await invoice.methods.getInvoiceID(hashVal).call({from : ethAccountToUse});
-    console.log("getInvoiceID after", result);
+        result = await invoice.methods.getInvoiceID(hashVal).call({from : ethAccountToUse});
+        console.log("getInvoiceID after", result);
+    }    
+    catch (error) {
+        console.log("Error in testInvoicesContract(): " + error);
+    }
+    if(protocol == "ws://") {
+        web3.currentProvider.connection.close();
+    }
 }
 
 async function transferXLG(fromPrivateKey,toEthereumAccount,XLGAmount) {
@@ -1030,20 +1061,22 @@ async function deployGreeterPrivate(host1, host2, host3, host4, toPrivatePort, t
         txnParams.nonce = nonce;
         console.log("Nonce :", nonce);
         const newTx = rawTransactionManager.sendRawTransaction(txnParams);
-        newTx.then(function (tx){
+        newTx.then(async function (tx){
             deployedAddressGreeter = tx.contractAddress;
             console.log("Greeter deployed contract address: ", deployedAddressGreeter);
             console.log("Greeter deployed transactionHash: ", tx.transactionHash);
             utils.writeContractsINConfig("Greeter",deployedAddressGreeter);
-            getGreeterValues(deployedAddressGreeter);
-            //setGreeterValues(deployedAddressGreeter,host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2);
+            console.log("Greeter :getGreeterValues");
+            await getGreeterValues(host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2, deployedAddressGreeter);
+            console.log("Greeter :setGreeterValues");
+            await setGreeterValues(host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2, deployedAddressGreeter);
         }).catch(function (err) {
-            if(err.error.code === 'HPE_INVALID_CONSTANT') {
-                    console.log('Server returned no headers. Does server accept https request?')                      
-            }
-                if(err.error.code === 'EPROTO') {
-                console.log('Certificate Error. Verify if the certificate is valid and not regenerated with same subject Info ')
-            }
+            // if(err.error.code === 'HPE_INVALID_CONSTANT') {
+            //         console.log('Server returned no headers. Does server accept https request?')                      
+            // }
+            //     if(err.error.code === 'EPROTO') {
+            //     console.log('Certificate Error. Verify if the certificate is valid and not regenerated with same subject Info ')
+            // }
             console.log(err);
         });
     });
@@ -1066,12 +1099,13 @@ async function setGreeterValues(host1, host2, host3, host4, toPrivatePort, toPor
     const h2 = "http://" + host2 + ":" + toPort1;
     const h3 = "http://" + host3 + ":" + otherPort1;
     const h4 = "http://" + host4 + ":" + otherPort2;
-    const toPrivateURL = "http://" + host + ":" + toPrivatePort;
+    const toPrivateURL = "https://" + host + ":" + toPrivatePort;
 
     web31 = new Web3(new Web3.providers.HttpProvider(h1));
     web32 = new Web3(new Web3.providers.HttpProvider(h2));
     web33 = new Web3(new Web3.providers.HttpProvider(h3));
     web34 = new Web3(new Web3.providers.HttpProvider(h4));    
+    
     // Todo: Read ABI from dynamic source.
     var value = utils.readSolidityContractJSON("./build/contracts/Greeter");
     if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
@@ -1084,7 +1118,7 @@ async function setGreeterValues(host1, host2, host3, host4, toPrivatePort, toPor
     // const contract4 = new web34.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
 
     var ethAccountToUse = global.accountAddressList[0];
-    var encodedABI = contract1.methods.setMyNumber(316).encodeABI();
+    var encodedABI = contract1.methods.setMyNumber(120000).encodeABI();
     
     let tlsOptions = {
         key: fs.readFileSync('./certs/cert.key'),
@@ -1119,19 +1153,30 @@ async function setGreeterValues(host1, host2, host3, host4, toPrivatePort, toPor
     const newTx = rawTransactionManager.sendRawTransaction(txnParams);
     newTx.then(function (tx){
         console.log("Greeter setMyNumber transactionHash: ", tx.transactionHash);
-        getGreeterValues(deployedAddressGreeter);
+        getGreeterValues(host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2, deployedAddressGreeter);
     }).catch(function (err) {
         console.log("error");
         console.log(err);
     });
 }
 
-async function getGreeterValues(deployedAddressGreeter) {
+async function getGreeterValues(host1, host2, host3, host4, toPrivatePort, toPort1, otherPort1, otherPort2, deployedAddressGreeter) {
     // Todo: Read ABI from dynamic source.
     var value = utils.readSolidityContractJSON("./build/contracts/Greeter");
     if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
         return;
     }
+
+    const h1 = "http://" + host1 + ":" + port;
+    const h2 = "http://" + host2 + ":" + toPort1;
+    const h3 = "http://" + host3 + ":" + otherPort1;
+    const h4 = "http://" + host4 + ":" + otherPort2;
+    const toPrivateURL = "https://" + host + ":" + toPrivatePort;
+
+    web31 = new Web3(new Web3.providers.HttpProvider(h1));
+    web32 = new Web3(new Web3.providers.HttpProvider(h2));
+    web33 = new Web3(new Web3.providers.HttpProvider(h3));
+    web34 = new Web3(new Web3.providers.HttpProvider(h4));
     
     const contract1 = new web31.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
     const contract2 = new web32.eth.Contract(JSON.parse(value[0]),deployedAddressGreeter);
@@ -1145,42 +1190,42 @@ async function getGreeterValues(deployedAddressGreeter) {
     
     contract1.methods.getMyNumber().call().then(function (val, error) {
         if(!error)
-            console.log(val);
+            console.log('Host ' + web31._provider.host + ' value returned:' + val);
         else {
-            console.log("error 1",error);
+            console.log('Host ' + web31._provider.host + ' error 1', error);
         }
     }).catch(err => {
-        console.log(err.message + ' Is this a private transaction?')
+        console.log('Host ' + web31._provider.host + ' Message ' + err.message + '. Is this a private transaction?')
     });
 
     contract2.methods.getMyNumber().call().then(function (val, error) {
         if(!error)
-            console.log(val);
+        console.log('Host ' + web32._provider.host + ' value returned:' + val);
         else {
-            console.log("error 2",error);
+            console.log('Host ' + web32._provider.host + ' error 2', error);
         }
     }).catch(err => {
-        console.log(err.message + ' Is this a private transaction?')
+        console.log('Host ' + web32._provider.host + ' Message ' + err.message + '. Is this a private transaction?')
     });
 
     contract3.methods.getMyNumber().call().then(function (val, error) {
         if(!error)
-            console.log(val);
+        console.log('Host ' + web33._provider.host + ' value returned:' + val);
         else {
-            console.log("error 3",error);
+            console.log('Host ' + web33._provider.host + ' error 3', error);
         }
     }).catch(err => {
-        console.log(err.message + ' Is this a private transaction?')
+        console.log('Host ' + web33._provider.host + ' Message ' + err.message + '. Is this a private transaction?')
     });
 
     contract4.methods.getMyNumber().call().then(function (val, error) {
         if(!error)
-            console.log(val);
+        console.log('Host ' + web34._provider.host + ' value returned:' + val);
         else {
-            console.log("error 4",error);
+            console.log('Host ' + web34._provider.host + ' error 4', error);
         }
     }).catch(err => {
-        console.log(err.message + ' Is this a private transaction?')
+        console.log('Host ' + web34._provider.host + ' Message ' + err.message + '. Is this a private transaction?')
     });
 }
 
@@ -1289,4 +1334,48 @@ async function getSimpleStorageValues(deployedAddressSimpleStorage) {
 
 function generateCerts() {
     sslCerts.generateTLSCerts()
+}
+
+async function deployProof() {
+    
+    accountAddressList = global.accountAddressList;
+    privateKey = global.privateKey;  
+  
+    // Todo: Read ABI from dynamic source.
+    var value = utils.readSolidityContractJSON("./build/contracts/Proof");
+    if((value.length <= 0) || (value[0] == "") || (value[1] == "")) {
+        return;
+    }
+    var ethAccountToUse = accountAddressList[0];
+    var deployedAddressProof;
+    if(!usecontractconfigFlag){
+        let constructorParameters = [];
+        //constructorParameters.push("Hi Ledgerium");
+        //value[0] = Contract ABI and value[1] =  Contract Bytecode
+        let encodedABI = await utils.getContractEncodeABI(value[0], value[1],web3,constructorParameters);
+        let transactionHash = await utils.sendMethodTransaction(ethAccountToUse,undefined,encodedABI,privateKey[ethAccountToUse],web3,0);
+        deployedAddressProof = transactionHash.contractAddress;
+        console.log("Proof deployedAddress ", deployedAddressProof);
+
+        utils.writeContractsINConfig("Proof",deployedAddressProof);
+    }
+    else{
+        deployedAddressProof = utils.readContractFromConfigContracts("Proof");
+    }
+    
+    var proof = new web3.eth.Contract(JSON.parse(value[0]),deployedAddressProof);
+    global.proof = proof;
+    
+    var result = await proof.methods.get("123").call({from : ethAccountToUse});
+    console.log("get", result);
+    
+    let encodedABI = proof.methods.set("123","321").encodeABI();
+    var transactionObject = await utils.sendMethodTransaction(ethAccountToUse,deployedAddressProof,encodedABI,privateKey[ethAccountToUse],web3,0);
+    console.log("TransactioHash for Proof Setvalue -", transactionObject.transactionHash);
+
+    var val = await utils.decodeInputVals(transactionObject.transactionHash,value[0],web3);
+    console.log("Input value for TransactioHash", transactionObject.transactionHash, "is", val.key, val.store);
+
+    result = await proof.methods.get("123").call({from : ethAccountToUse});
+    console.log("get after", result);
 }

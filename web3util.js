@@ -131,12 +131,13 @@ class utils {
 
             console.log("FromAccount", fromAccountAddress, "has balance of", web3.utils.fromWei(balance, 'xlg'), "xlg");
             
-            let nonceToUse = await web3.eth.getTransactionCount(fromAccountAddress, 'pending');
+            //let nonceToUse = await web3.eth.getTransactionCount(fromAccountAddress, 'pending');
+            let nonceToUse = await web3.eth.getTransactionCount(fromAccountAddress);
+            //nonceToUse = 1635;
             console.log("nonceToUse ",nonceToUse);
             const txParams = {
                 nonce: nonceToUse,
-                //gasPrice: '0x00',
-                gasPrice: web3.utils.toHex(gasPrice),//'0x4A817C800', //20Gwei
+                gasPrice: '0x1001D1BF800',//web3.utils.toHex(gasPrice),//'0x4A817C800', //20Gwei
                 gasLimit: '0x47b760',//'0x48A1C0',//web3.utils.toWei(20,'gwei'), //estimatedGas, // Todo, estimate gas
                 from: fromAccountAddress,
                 to: toContractAddress,
